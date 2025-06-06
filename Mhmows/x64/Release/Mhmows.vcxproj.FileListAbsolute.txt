@@ -1,0 +1,9 @@
+C:\Users\gorge kirda7i\source\repos\Mhmows\x64\Release\wxbase32u_vc_x64_custom.dll
+C:\Users\gorge kirda7i\source\repos\Mhmows\x64\Release\zlib1.dll
+C:\Users\gorge kirda7i\source\repos\Mhmows\x64\Release\pcre2-16.dll
+C:\Users\gorge kirda7i\source\repos\Mhmows\x64\Release\wxmsw32u_core_vc_x64_custom.dll
+C:\Users\gorge kirda7i\source\repos\Mhmows\x64\Release\jpeg62.dll
+C:\Users\gorge kirda7i\source\repos\Mhmows\x64\Release\libpng16.dll
+C:\Users\gorge kirda7i\source\repos\Mhmows\x64\Release\tiff.dll
+C:\Users\gorge kirda7i\source\repos\Mhmows\x64\Release\liblzma.dll
+C:\Users\gorge kirda7i\source\repos\Mhmows\Mhmows\x64\Release\Mhmows.vcxproj.Up2Date

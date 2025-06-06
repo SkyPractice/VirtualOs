@@ -1,0 +1,23 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\gorge kirda7i\\source\\repos\\mhmows\\ast.ixx",
+        "ProvidedModule": "Ast",
+        "Includes": [],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": [
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.41.34120\\include\\memory",
+                "BMI": "C:\\Users\\gorge kirda7i\\source\\repos\\Mhmows\\OperatingSystem\\x64\\Release\\memory_779C257786F9CE4A.ifc.dt"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.41.34120\\include\\string",
+                "BMI": "C:\\Users\\gorge kirda7i\\source\\repos\\Mhmows\\OperatingSystem\\x64\\Release\\string_C9A381763A1331AC.ifc.dt"
+            },
+            {
+                "Header": "c:\\program files\\microsoft visual studio\\2022\\community\\vc\\tools\\msvc\\14.41.34120\\include\\vector",
+                "BMI": "C:\\Users\\gorge kirda7i\\source\\repos\\Mhmows\\OperatingSystem\\x64\\Release\\vector_8B01A153FC4AE44E.ifc.dt"
+            }
+        ]
+    }
+}

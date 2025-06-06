@@ -1,0 +1,14 @@
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\Desktop\DeskTop.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\DeskTop.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\Interpreter\Interpreter.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\Interpreter.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\Kernel\Kernel.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\Kernel.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\Lexer\Lexer.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\Lexer.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\DeskTop\OsAppIcon.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\OsAppIcon.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\OsFrame\OsFrame.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\OsFrame.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\Parser\Parser.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\Parser.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\Processes\Process.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\Process.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\Processes\ProcessWindow.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\ProcessWindow.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\Source.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\Source.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\DeskTop\TaskBar.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\TaskBar.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\VirtualOs\VirtualOs.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\VirtualOs.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\VirtualOs\VirtualOsApp.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\VirtualOsApp.obj
+C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\src\DeskTop\StartMenu.cpp;C:\Users\gorge kirda7i\source\repos\VsCodeMhmows\OperatingSystem\x64\Release\StartMenu.obj

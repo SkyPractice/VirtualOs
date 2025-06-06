@@ -1,0 +1,9 @@
+call directory_iterator("DeskTop")
+variable paths = eax
+variable size = call array_size(paths)
+variable i = 0
+while i < size {
+ call print(paths[i])
+ reinit i = i + 1
+}
+call interrupt()

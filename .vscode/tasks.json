@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "MSBuild: Build",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "${workspaceFolder}/Mhmows.vcxproj",
+                "/p:Configuration=Release",
+                "/p:Platform=x64",
+                "/p:PlatformToolset=v143",
+                "/p:VcpkgInstalledDir=${env:VCPKG_ROOT}",
+                "/m"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}

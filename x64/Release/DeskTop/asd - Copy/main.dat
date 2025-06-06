@@ -1,0 +1,6 @@
+variable i = 0
+while(i < 10){ call print("helllooo")
+   reinit i = i + 1
+variable k = 0
+
+ }
