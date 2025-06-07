@@ -15,7 +15,7 @@ shared_ptr<RunTimeVal> Process::continueExecution() {
 				return make_shared<BoolVal>(true);
 			}
 		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+		std::this_thread::sleep_for(std::chrono::milliseconds(2));
 		{
 			std::lock_guard<std::mutex> kernel_locker(kernel_mutex);
 			for (const auto& interruptt : (*interrupt_vec)) {

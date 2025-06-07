@@ -70,7 +70,11 @@ std::vector<Token> Lexer::tokenize(std::string source_path) {
 				std::string str_s = "";
 				advance();
 				while (ch != '\"') {
-					str_s.push_back(ch);
+					if(ch == '\\' && source_code[idx + 1] == 'n'){
+						str_s.push_back('\n');
+						advance();
+					}
+					else str_s.push_back(ch);
 					advance();
 				}
 				advance();

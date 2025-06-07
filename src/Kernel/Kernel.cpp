@@ -34,22 +34,33 @@ void Kernel::doLifeCycle() {
 							continue;
 						};
 					}
-
-					shared_ptr<RunTimeVal> result = (**process).continueExecution();
-					if (result->type == BoolType) {
-						shared_ptr<BoolVal> val = std::dynamic_pointer_cast<BoolVal>(result);
-						if (!val->val) {
-							SystemCalls::sys_calls["print"]({ make_shared<StringVal>("Program Successfully Ended . . . ") },
-								current_process);
-							current_process->suspended = true;
-							current_process->window->Refresh();
+					try
+					{
+						shared_ptr<RunTimeVal> result = (**process).continueExecution();
+						if (result->type == BoolType)
+						{
+							shared_ptr<BoolVal> val = std::dynamic_pointer_cast<BoolVal>(result);
+							if (!val->val)
+							{
+								SystemCalls::sys_calls["print"]({make_shared<StringVal>("Program Successfully Ended . . . ")},
+																current_process);
+								current_process->suspended = true;
+								current_process->window->Refresh();
+							}
+							// close the program gracefully if its false
 						}
-						// close the program gracefully if its false
-					}
-					else if (result->type == SysCallType) {
-						shared_ptr<SysCallVal> val = std::dynamic_pointer_cast<SysCallVal>(result);
-						// do the syscall
-						SystemCalls::sys_calls[val->name](val->args, current_process);
+						else if (result->type == SysCallType)
+						{
+							shared_ptr<SysCallVal> val = std::dynamic_pointer_cast<SysCallVal>(result);
+							// do the syscall
+							SystemCalls::sys_calls[val->name](val->args, current_process);
+						}
+					} catch(std::exception& exp){
+						std::string str = "Error From Process: " + current_process->window->application_name + "\n" + exp.what();
+						wxLogError(str.c_str());
+						processes.erase(process);
+						wxQueueEvent(os->desktop, new WindowTerminationEvent((current_process)->random_iden));
+						break;
 					}
 					if (processInterrupts()) {
 						(*desktop)->task_bar->Refresh();
@@ -74,31 +85,41 @@ bool Kernel::processInterrupts() {
 	std::lock_guard<std::mutex> locker(mutex);
 	bool edited = false;
 	for (auto& interrupt : interrupts) {
-		if (interrupt.type == ProcessCreation) {
-			std::vector<Token> tokens = Lexer::tokenize(interrupt.icon_caller->source_path);
-			shared_ptr<ProgramObj> program = Parser::produceAst(tokens);
+		try
+		{
+			if (interrupt.type == ProcessCreation)
+			{
+				std::vector<Token> tokens = Lexer::tokenize(interrupt.icon_caller->source_path);
 
-			Process* process = new Process(program->stmts, &interrupts, mutex, nullptr);
+				const Token mode = tokens[0];
+				tokens.erase(tokens.begin());
+				shared_ptr<ProgramObj> program = Parser::produceAst(tokens);
 
-			processes.push_back(process);
-			wxQueueEvent(os->desktop, new WindowCreationEvent(interrupt.icon_caller->app_name, 
-				process, &interrupts, &mutex, interrupt.icon_caller->icon));
+				const WindowType window_type = (mode.symbol == "console" ? ConsoleWindow : GUIWindow);
 
-			edited = true;
+				Process *process = new Process(program->stmts, &interrupts, mutex, nullptr);
 
-		}
-		else if (interrupt.type == ProcessTerminationInterrupt) {
+				processes.push_back(process);
+				wxQueueEvent(os->desktop, new WindowCreationEvent(interrupt.icon_caller->app_name,
+																  process, &interrupts, &mutex, interrupt.icon_caller->icon, window_type));
 
-			auto itr = std::find_if(processes.begin(), processes.end(), [&](Process* proc)
-				{ return proc->random_iden == interrupt.caller->random_iden; });
-
-			if (itr != processes.end()) {
-				wxQueueEvent(os->desktop, new WindowTerminationEvent((*itr)->random_iden));
-				processes.erase(itr);
+				edited = true;
 			}
-			edited = true;
-		}
+			else if (interrupt.type == ProcessTerminationInterrupt)
+			{
+				auto itr = std::find_if(processes.begin(), processes.end(), [&](Process *proc)
+										{ return proc->random_iden == interrupt.caller->random_iden; });
 
+				if (itr != processes.end())
+				{
+					wxQueueEvent(os->desktop, new WindowTerminationEvent((*itr)->random_iden));
+					processes.erase(itr);
+				}
+				edited = true;
+			}
+		} catch(std::exception& exp){
+			wxLogError((std::string("Error While Executing An Interrupt: ") + exp.what()).c_str());
+		} 
 	}
 
 	interrupts.clear();

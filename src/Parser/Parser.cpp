@@ -113,6 +113,20 @@ shared_ptr<ExpressionObj> Parser::parseComparativeExpression() {
 
 
 shared_ptr<ExpressionObj> Parser::parsePrimaryExpression() {
+
+	if (token->type == Identifier && (token + 1)->type == OpenBracket)
+	{
+		const Token var_name = advance();
+		std::vector<std::shared_ptr<ExpressionObj>> path;
+		while(token->type == OpenBracket){
+			advance();
+			path.push_back(parseExpression());
+			advance();
+		}
+
+		return make_shared<IndexAccessExpr>(path, var_name.symbol);
+	}
+
 	switch (token->type)
 	{
 	case Call:
@@ -370,12 +384,13 @@ shared_ptr<ExpressionObj> Parser::parseArrayExpression(){
 		return make_shared<ArrayExpr>(exprs);
 	}
 
-	return parseIndexAccessExpression();
+	return parseComparativeExpression();
 
 };
 
 shared_ptr<ExpressionObj> Parser::parseIndexAccessExpression()
 {
+	
 	if (token->type == Identifier && (token + 1)->type == OpenBracket)
 	{
 		const Token var_name = advance();

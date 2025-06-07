@@ -2,24 +2,32 @@
 #include "Interpreter.h"
 #include "../Processes/Process.h"
 #include <algorithm>
+#include <condition_variable>
+#include "../CustomMsgs/ButtonCreationEvent.h"
+#include "../Processes/BkTransparentLabel.h"
 
 std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>, 
 	Process*)>> SystemCalls::sys_calls =
 { { "print", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
 	if (args[0]->type == StringType) {
 		shared_ptr<StringVal> str = std::dynamic_pointer_cast<StringVal>(args[0]);
-		caller->output_label->SetSmoothLabelText(caller->output_label->GetLabelText() + "\n" + str->str);
+		if(caller->output_label)
+			caller->output_label->SetSmoothLabelText(caller->output_label->GetLabelText() + "\n" + str->str);
 	}
 	else if (args[0]->type == NumType) {
 		shared_ptr<NumVal> str = std::dynamic_pointer_cast<NumVal>(args[0]);
-		caller->output_label->SetSmoothLabelText(caller->output_label->GetLabelText() + "\n" + std::to_string(str->number));
+		if(caller->output_label)
+			caller->output_label->SetSmoothLabelText(caller->output_label->GetLabelText() + "\n" + std::to_string(str->number));
 	}
 	else if (args[0]->type == BoolType) {
 		shared_ptr<BoolVal> str = std::dynamic_pointer_cast<BoolVal>(args[0]);
-		if(str->val)
-			caller->output_label->SetSmoothLabelText(caller->output_label->GetLabelText() + "\n" + "true");
-		else caller->output_label->SetSmoothLabelText(caller->output_label->GetLabelText() + "\n" + "false");
-
+		if (caller->output_label)
+		{
+			if (str->val)
+				caller->output_label->SetSmoothLabelText(caller->output_label->GetLabelText() + "\n" + "true");
+			else
+				caller->output_label->SetSmoothLabelText(caller->output_label->GetLabelText() + "\n" + "false");
+		}
 	}
 	return nullptr;
 
@@ -71,7 +79,159 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 
 					return std::make_shared<NumVal>(static_cast<double>(array->elms.size()));
 				}
-			}
+			},
+			{
+				"create_button", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+					std::shared_ptr<Handle> not_fully_casted_window_handle = 
+						std::dynamic_pointer_cast<Handle>(args[0]);
+					
+					std::shared_ptr<ControlHandle> window_handle = 
+						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+					
+					std::shared_ptr<StringVal> button_str = std::dynamic_pointer_cast<StringVal>(args[1]);
+					
+					std::shared_ptr<NumVal> button_x = std::dynamic_pointer_cast<NumVal>(args[2]);
+					std::shared_ptr<NumVal> button_y = std::dynamic_pointer_cast<NumVal>(args[3]);
+					std::shared_ptr<NumVal> button_width = std::dynamic_pointer_cast<NumVal>(args[4]);
+					std::shared_ptr<NumVal> button_height = std::dynamic_pointer_cast<NumVal>(args[5]);
+					std::shared_ptr<NumVal> font_size = std::dynamic_pointer_cast<NumVal>(args[6]);
+
+					wxButton* btn = nullptr;
+
+					window_handle->window->CallAfter([&, window_handle, button_str,
+						button_x, button_y, button_width, button_height, font_size](){
+						btn = new wxButton(
+							window_handle->window,
+							wxID_ANY,
+							button_str->str,
+							wxPoint(button_x->number, button_y->number + 40),
+							wxSize(button_width->number, button_height->number)
+						);
+						btn->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+							wxFONTWEIGHT_NORMAL));
+					});
+
+					return std::make_shared<ControlHandle>(ButtonControlType, 
+						btn);
+
+				}
+			},
+				{
+				"create_label", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+					std::shared_ptr<Handle> not_fully_casted_window_handle = 
+						std::dynamic_pointer_cast<Handle>(args[0]);
+					
+					std::shared_ptr<ControlHandle> window_handle = 
+						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+
+					std::shared_ptr<StringVal> str = std::dynamic_pointer_cast<StringVal>(args[1]);
+					std::shared_ptr<NumVal> x = std::dynamic_pointer_cast<NumVal>(args[2]);
+					std::shared_ptr<NumVal> y = std::dynamic_pointer_cast<NumVal>(args[3]);
+					std::shared_ptr<NumVal> w = std::dynamic_pointer_cast<NumVal>(args[4]);
+					std::shared_ptr<NumVal> h = std::dynamic_pointer_cast<NumVal>(args[5]);
+					std::shared_ptr<NumVal> font_size = std::dynamic_pointer_cast<NumVal>(args[6]);
+					BkTransparentLabel* label;
+
+					window_handle->window->CallAfter([&, window_handle, str,
+						x, y, w, h, font_size](){
+						label = new BkTransparentLabel(
+							window_handle->window,
+							x->number, y->number + 40,
+							w->number, h->number,
+							str->str,
+							font_size->number
+						);
+						label->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+							wxFONTWEIGHT_NORMAL));
+					});
+
+					return std::make_shared<ControlHandle>(LabelControlType, 
+						label);
+					
+				}
+			},
+			{
+				"create_input", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+					std::shared_ptr<Handle> not_fully_casted_window_handle = 
+						std::dynamic_pointer_cast<Handle>(args[0]);
+					
+					std::shared_ptr<ControlHandle> window_handle = 
+						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+					
+					std::shared_ptr<StringVal> input_str = std::dynamic_pointer_cast<StringVal>(args[1]);
+					
+					std::shared_ptr<NumVal> x = std::dynamic_pointer_cast<NumVal>(args[2]);
+					std::shared_ptr<NumVal> y = std::dynamic_pointer_cast<NumVal>(args[3]);
+					std::shared_ptr<NumVal> width = std::dynamic_pointer_cast<NumVal>(args[4]);
+					std::shared_ptr<NumVal> height = std::dynamic_pointer_cast<NumVal>(args[5]);
+					std::shared_ptr<NumVal> font_size = std::dynamic_pointer_cast<NumVal>(args[6]);
+
+					wxTextCtrl* txt_input = nullptr;
+
+					window_handle->window->CallAfter([&, window_handle, input_str,
+						x, y, width, height, font_size](){
+						txt_input = new wxTextCtrl(
+							window_handle->window,
+							wxID_ANY,
+							input_str->str,
+							wxPoint(x->number, y->number + 40),
+							wxSize(width->number, height->number)
+						);
+						txt_input->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
+							wxFONTWEIGHT_NORMAL));
+					});
+
+					return std::make_shared<ControlHandle>(ButtonControlType, 
+						txt_input);
+
+				}
+			},
+			{
+				"get_window_size", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+					std::shared_ptr<Handle> not_fully_casted_window_handle = 
+						std::dynamic_pointer_cast<Handle>(args[0]);
+					
+					std::shared_ptr<ControlHandle> window_handle = 
+						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+
+					// the first element in the array is the width, the second is the height :skull:
+
+					std::vector<std::shared_ptr<RunTimeVal>> arr;
+					arr.push_back(std::make_shared<NumVal>(window_handle->window->GetSize().GetWidth()));
+					arr.push_back(std::make_shared<NumVal>(window_handle->window->GetSize().GetHeight()));
+
+					std::shared_ptr<ArrayVal> val = std::make_shared<ArrayVal>(arr);
+
+					return val;
+
+				}
+			},
+			{ "array_push_back", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+				std::shared_ptr<ArrayVal> arr = std::dynamic_pointer_cast<ArrayVal>(args[0]);
+				arr->elms.push_back(args[1]);
+
+				return arr;
+
+			} },
+			{ "free_handle", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+				std::shared_ptr<Handle> not_fully_casted_window_handle = 
+					std::dynamic_pointer_cast<Handle>(args[0]);
+				
+				if(not_fully_casted_window_handle->type == ControlHandleType){
+					std::shared_ptr<ControlHandle> window_handle = 
+						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+					window_handle->window->GetParent()->CallAfter([&, window_handle](){
+						window_handle->window->GetParent()->RemoveChild(
+							window_handle->window
+						);
+					});
+
+					window_handle->window->Destroy();
+				}
+
+				return nullptr;
+
+			} }
 		};
 
 std::shared_ptr<RunTimeVal> Interpreter::nextStatement() {

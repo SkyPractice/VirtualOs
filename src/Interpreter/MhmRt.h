@@ -2,9 +2,18 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <wx/wx.h>
 
 enum RunTimeValType {
-	NumType, StringType, BoolType, SysCallType, ArrayType
+	NumType, StringType, BoolType, SysCallType, ArrayType, HANDLETYPE
+};
+
+enum HandleType{
+	FileHandleType, ControlHandleType
+};
+
+enum ControlType{
+	LabelControlType, ButtonControlType, ImageControlType, FrameControlType
 };
 
 class RunTimeVal {
@@ -52,3 +61,21 @@ public:
 
 	ArrayVal(std::vector<std::shared_ptr<RunTimeVal>> elements): RunTimeVal(ArrayType), elms(elements) {};
 };
+
+class Handle : public RunTimeVal {
+public:
+	HandleType type;
+
+	Handle(HandleType t): RunTimeVal(HANDLETYPE), type(t) {};
+};
+
+class ControlHandle : public Handle {
+public:
+	ControlType control_type;
+	wxWindow* window;
+
+	ControlHandle(ControlType control_t, wxWindow* wind): Handle(ControlHandleType), control_type(control_t),
+		window(wind) {};
+
+};
+

@@ -12,6 +12,7 @@ public:
 	std::vector<Interrupt>* interrupts_vec;
 	std::mutex* kernel_mut;
 	wxBitmap process_img;
+	WindowType type;
 	WindowCreationEvent(std::string name, Process* process, std::vector<Interrupt>* int_vec,
-		std::mutex* kernel_mutex, wxBitmap img);
+		std::mutex* kernel_mutex, wxBitmap img, WindowType t = ConsoleWindow);
 };

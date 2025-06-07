@@ -1,6 +1,7 @@
 #include "DeskTop.h"
 #include "../CustomMsgs/WindowCreationEvent.h"
 #include "../CustomMsgs/WindowTerminationEvent.h"
+#include "../CustomMsgs/ButtonCreationEvent.h"
 
 wxDECLARE_EVENT(MY_CUSTOM_EVENT, WindowCreationEvent);
 wxDEFINE_EVENT(MY_CUSTOM_EVENT, WindowCreationEvent);
@@ -8,10 +9,11 @@ wxDEFINE_EVENT(MY_CUSTOM_EVENT, WindowCreationEvent);
 wxDECLARE_EVENT(WINDOW_TERMINATION_EVENT, WindowTerminationEvent); // ProcessTerminationEvent
 wxDEFINE_EVENT(WINDOW_TERMINATION_EVENT, WindowTerminationEvent);
 
+
 WindowCreationEvent::WindowCreationEvent(std::string name, Process * process,
-	std::vector<Interrupt>* int_vec, std::mutex* kernel_mutex, wxBitmap img) :
+	std::vector<Interrupt>* int_vec, std::mutex* kernel_mutex, wxBitmap img, WindowType t) :
 	wxCommandEvent(MY_CUSTOM_EVENT, wxID_ANY),
-	window_name(name), process_caller(process), interrupts_vec(int_vec), kernel_mut(kernel_mutex), process_img(img) {};
+	window_name(name), process_caller(process), type(t), interrupts_vec(int_vec), kernel_mut(kernel_mutex), process_img(img) {};
 
 WindowTerminationEvent::WindowTerminationEvent(int id) : wxCommandEvent(WINDOW_TERMINATION_EVENT, wxID_ANY),
 	window_id(id) {};
@@ -41,7 +43,12 @@ DeskTop::DeskTop(wxWindow* parent) : wxPanel(parent) {
 
 	this->Bind(MY_CUSTOM_EVENT, [=](WindowCreationEvent& evt) {
 		ProcessWindow* process_window = new ProcessWindow(this, evt.window_name, evt.interrupts_vec,
-			evt.kernel_mut, evt.process_caller, evt.process_img);
+			evt.kernel_mut, evt.process_caller, evt.process_img, evt.type);
+		
+		if(evt.type == GUIWindow){
+			evt.process_caller->interpreter.program_scope->variables["window"] = 
+				std::make_shared<ControlHandle>(FrameControlType, process_window);
+		}
 		evt.process_caller->window = process_window;
 		process_windows.push_back(process_window);
 		evt.process_caller->suspended = false;
