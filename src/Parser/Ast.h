@@ -18,7 +18,8 @@ enum StatementType {
 	ConditionJmpType,
 	ConditionActionJmpType,
 	ArrayExpressionType,
-	IndexAccessExpressionType
+	IndexAccessExpressionType,
+	LambdaExprType
 };
 
 enum ErrorType {
@@ -299,4 +300,15 @@ public:
 	IndexAccessExpr(std::vector<shared_ptr<ExpressionObj>> index_arg, 
 		std::string variable_name): ExpressionObj(IndexAccessExpressionType),
 		index_path(index_arg), var_name(variable_name) {};
+};
+
+class LambdaExpression : public ExpressionObj {
+public:
+	std::vector<std::string> args;
+	std::vector<std::shared_ptr<StatementObj>> stmts;
+	
+	LambdaExpression(std::vector<std::string> args_arg, 
+		std::vector<std::shared_ptr<StatementObj>> stmts_arg):
+		ExpressionObj(LambdaExprType), args(args_arg), stmts(stmts_arg){};
+
 };

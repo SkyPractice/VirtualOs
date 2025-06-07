@@ -7,13 +7,7 @@
 #include <unordered_set>
 
 
-class SystemCalls {
-public:
-	static std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>,
-		Process*)>>  sys_calls;
-	static std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>)>>
-		native_functions;
-};
+
 class Interpreter {
 public:
 	std::vector<shared_ptr<StatementObj>> stmts;
@@ -56,5 +50,14 @@ public:
 	std::shared_ptr<RunTimeVal> evaluateArrayExpr(std::shared_ptr<ArrayExpr> expr);
 	std::shared_ptr<RunTimeVal> evaluateIndexAccessExpr(std::shared_ptr<IndexAccessExpr> expr);
 	std::shared_ptr<RunTimeVal> evaluateFunctionCall(std::shared_ptr<FunctionCall> call);
+	std::shared_ptr<RunTimeVal> evaluateLambdaExpr(std::shared_ptr<LambdaExpression> expr);
 
+};
+
+class SystemCalls {
+public:
+	static std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>,
+		Process*)>>  sys_calls;
+	static std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>, Interpreter*)>>
+		native_functions;
 };

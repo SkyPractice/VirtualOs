@@ -146,6 +146,8 @@ shared_ptr<ExpressionObj> Parser::parsePrimaryExpression() {
 	}
 	case Identifier:
 		return make_shared<IdentifierExpr>(advance().symbol);
+	case Lambda:
+		return parseLambdaExpression();
 	default:
 		throw std::exception("Unexcepted Token");
 		break;
@@ -405,4 +407,33 @@ shared_ptr<ExpressionObj> Parser::parseIndexAccessExpression()
 	}
 
 	return parseComparativeExpression();
+}
+
+shared_ptr<ExpressionObj> Parser::parseLambdaExpression(){
+
+	std::vector<std::string> args;
+	
+	const Token lambda_word = advance();
+	const Token open_paren = advance();
+
+	while (token->type != CloseParen) {
+		args.push_back(advance().symbol);
+		if (token->type == Comma)
+			advance();
+		else break; // close parenthes
+	}
+
+	const Token close_paren = advance();
+
+	const Token open_brace = advance();
+	std::vector<shared_ptr<StatementObj>> stmts;
+
+	while (token->type != CloseBrace) {
+		stmts.push_back(parseStatement());
+	}
+
+	const Token close_brace = advance();
+
+	return make_shared<LambdaExpression>(args, stmts);
+
 }

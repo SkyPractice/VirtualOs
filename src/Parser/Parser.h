@@ -22,6 +22,7 @@ public:
 	static shared_ptr<ExpressionObj> parseArrayExpression();
 	static shared_ptr<ExpressionObj> parseBooleanExpression();
 	static shared_ptr<ExpressionObj> parseIndexAccessExpression();
+	static shared_ptr<ExpressionObj> parseLambdaExpression();
 	 
 	static shared_ptr<VariableDecleration> parseVariableDecleration();
 	static shared_ptr<IfStatement> parseIfStatement(); // includes elseif and else

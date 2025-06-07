@@ -71,17 +71,18 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 	
 };
 
-std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>)>>
+std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>,
+	Interpreter*)>>
 		SystemCalls::native_functions = {
 			{
-				"array_size", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+				"array_size", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 					std::shared_ptr<ArrayVal> array = std::dynamic_pointer_cast<ArrayVal>(args[0]);
 
 					return std::make_shared<NumVal>(static_cast<double>(array->elms.size()));
 				}
 			},
 			{
-				"create_button", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+				"create_button", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 					std::shared_ptr<Handle> not_fully_casted_window_handle = 
 						std::dynamic_pointer_cast<Handle>(args[0]);
 					
@@ -89,7 +90,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
 					
 					std::shared_ptr<StringVal> button_str = std::dynamic_pointer_cast<StringVal>(args[1]);
-					
+
 					std::shared_ptr<NumVal> button_x = std::dynamic_pointer_cast<NumVal>(args[2]);
 					std::shared_ptr<NumVal> button_y = std::dynamic_pointer_cast<NumVal>(args[3]);
 					std::shared_ptr<NumVal> button_width = std::dynamic_pointer_cast<NumVal>(args[4]);
@@ -98,8 +99,8 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 
 					wxButton* btn = nullptr;
 
-					window_handle->window->CallAfter([&, window_handle, button_str,
-						button_x, button_y, button_width, button_height, font_size](){
+					std::function<void()> fun = [&, window_handle, button_str, button_x, button_y, 
+						button_width, button_height](){
 						btn = new wxButton(
 							window_handle->window,
 							wxID_ANY,
@@ -109,7 +110,27 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 						);
 						btn->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
 							wxFONTWEIGHT_NORMAL));
-					});
+					};
+
+					if(!wxThread::IsMain()){
+						std::condition_variable v;
+						std::mutex mut;
+						std::unique_lock<std::mutex> lock(mut);
+
+
+						window_handle->window->CallAfter([&, window_handle, button_str,
+							button_x, button_y, button_width, button_height, font_size](){
+							{
+								std::unique_lock<std::mutex> locker(mut);
+								fun();
+							}
+							v.notify_all();
+						});
+
+						v.wait(lock, [&]()->bool{ return btn; });
+
+					} else fun();
+					
 
 					return std::make_shared<ControlHandle>(ButtonControlType, 
 						btn);
@@ -117,7 +138,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 				}
 			},
 				{
-				"create_label", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+				"create_label", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 					std::shared_ptr<Handle> not_fully_casted_window_handle = 
 						std::dynamic_pointer_cast<Handle>(args[0]);
 					
@@ -130,9 +151,10 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 					std::shared_ptr<NumVal> w = std::dynamic_pointer_cast<NumVal>(args[4]);
 					std::shared_ptr<NumVal> h = std::dynamic_pointer_cast<NumVal>(args[5]);
 					std::shared_ptr<NumVal> font_size = std::dynamic_pointer_cast<NumVal>(args[6]);
+
 					BkTransparentLabel* label;
 
-					window_handle->window->CallAfter([&, window_handle, str,
+					std::function<void()> fun = [&, window_handle, str,
 						x, y, w, h, font_size](){
 						label = new BkTransparentLabel(
 							window_handle->window,
@@ -143,7 +165,26 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 						);
 						label->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
 							wxFONTWEIGHT_NORMAL));
-					});
+						};
+
+					if(!wxThread::IsMain()){
+
+						std::condition_variable v;
+						std::mutex mut;
+						std::unique_lock<std::mutex> lock(mut);
+						window_handle->window->CallAfter([&, window_handle, str,
+							x, y, w, h, font_size](){
+
+							{
+								std::unique_lock<std::mutex> locker(mut);
+								fun();
+							}
+							v.notify_all();
+						});
+
+						v.wait(lock, [&]()->bool{return label;});
+
+					} else fun();
 
 					return std::make_shared<ControlHandle>(LabelControlType, 
 						label);
@@ -151,7 +192,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 				}
 			},
 			{
-				"create_input", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+				"create_input", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 					std::shared_ptr<Handle> not_fully_casted_window_handle = 
 						std::dynamic_pointer_cast<Handle>(args[0]);
 					
@@ -168,7 +209,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 
 					wxTextCtrl* txt_input = nullptr;
 
-					window_handle->window->CallAfter([&, window_handle, input_str,
+					std::function<void()> fun = [&, window_handle, input_str,
 						x, y, width, height, font_size](){
 						txt_input = new wxTextCtrl(
 							window_handle->window,
@@ -179,15 +220,31 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 						);
 						txt_input->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
 							wxFONTWEIGHT_NORMAL));
-					});
+					};
 
+					std::condition_variable v;
+					std::mutex mut;
+					std::unique_lock<std::mutex> lock(mut);
+
+					if(!wxThread::IsMain()){
+					window_handle->window->CallAfter([&, window_handle, input_str,
+						x, y, width, height, font_size](){
+							{
+								std::unique_lock<std::mutex> locker(mut);
+								fun();
+							}
+							v.notify_all();
+						});
+
+						v.wait(lock, [&]() -> bool { return txt_input; });
+					} else fun();
 					return std::make_shared<ControlHandle>(ButtonControlType, 
 						txt_input);
 
 				}
 			},
 			{
-				"get_window_size", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+				"get_window_size", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 					std::shared_ptr<Handle> not_fully_casted_window_handle = 
 						std::dynamic_pointer_cast<Handle>(args[0]);
 					
@@ -206,14 +263,14 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 
 				}
 			},
-			{ "array_push_back", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+			{ "array_push_back", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 				std::shared_ptr<ArrayVal> arr = std::dynamic_pointer_cast<ArrayVal>(args[0]);
 				arr->elms.push_back(args[1]);
 
 				return arr;
 
 			} },
-			{ "free_handle", [&](std::vector<shared_ptr<RunTimeVal>> args) -> shared_ptr<RunTimeVal> {
+			{ "free_handle", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 				std::shared_ptr<Handle> not_fully_casted_window_handle = 
 					std::dynamic_pointer_cast<Handle>(args[0]);
 				
@@ -231,6 +288,41 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 
 				return nullptr;
 
+			} },
+			{ "bind_event_to_handle", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
+				std::shared_ptr<Handle> not_fully_casted_window_handle = 
+					std::dynamic_pointer_cast<Handle>(args[0]);
+				try{
+				if(not_fully_casted_window_handle->type == ControlHandleType){
+					std::shared_ptr<ControlHandle> window_handle = 
+						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+
+					std::shared_ptr<StringVal> evt_type = std::dynamic_pointer_cast<StringVal>(args[1]);
+					std::shared_ptr<FunctionVal> func_val = std::dynamic_pointer_cast<FunctionVal>(args[2]);
+
+					if(evt_type->str == "click_event"){
+						window_handle->window->CallAfter(
+							[&, window_handle, func_val, interp](){
+								window_handle->window->Bind(wxEVT_LEFT_DOWN, [&, interp, func_val, window_handle](wxMouseEvent& evt){
+								auto scope = std::make_shared<Scope>(interp->program_scope);
+								interp->current_scope = scope;
+								for(auto& stmt : func_val->stmts){
+									interp->evaluate(stmt);
+								}
+								interp->current_scope = interp->current_scope->parent_scope;
+								});					
+							}
+						);
+					}
+
+					return std::make_shared<BoolVal>(true);
+				
+				}} catch(std::exception& exp){
+					wxLogError(exp.what());
+				}
+
+
+				return std::make_shared<BoolVal>(false);
 			} }
 		};
 
@@ -296,6 +388,8 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluate(std::shared_ptr<StatementObj> 
 		return evaluateBreakStatement();
 	case ContinueStatementType:
 		return evaluateContinueStatement();
+	case LambdaExprType:
+		return evaluateLambdaExpr(std::dynamic_pointer_cast<LambdaExpression>(statement));
 	default:
 		break;
 	}
@@ -386,7 +480,7 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateFunctionCall(std::shared_ptr<Fu
 		for (const auto& arg : call->args) {
 			values.push_back(evaluate(arg));
 		}
-		return SystemCalls::native_functions[call->func_name->identifer_name](values);
+		return SystemCalls::native_functions[call->func_name->identifer_name](values, this);
 	}
 	throw std::exception("No Function Calls Implemented Except Sys Calls");
 }
@@ -585,3 +679,7 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexAccessExpr(std::shared_ptr
 
 	return current_val;
 };
+
+std::shared_ptr<RunTimeVal> Interpreter::evaluateLambdaExpr(std::shared_ptr<LambdaExpression> expr){
+	return std::make_shared<FunctionVal>(expr->args, expr->stmts);
+}

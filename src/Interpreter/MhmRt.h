@@ -3,9 +3,10 @@
 #include <string>
 #include <vector>
 #include <wx/wx.h>
+#include "../Parser/Ast.h"
 
 enum RunTimeValType {
-	NumType, StringType, BoolType, SysCallType, ArrayType, HANDLETYPE
+	NumType, StringType, BoolType, SysCallType, ArrayType, HANDLETYPE, FunctionType
 };
 
 enum HandleType{
@@ -79,3 +80,12 @@ public:
 
 };
 
+class FunctionVal : public RunTimeVal {
+public:
+	std::vector<std::string> args;
+	std::vector<std::shared_ptr<StatementObj>> stmts;
+	
+	FunctionVal(std::vector<std::string> args_arg, 
+		std::vector<std::shared_ptr<StatementObj>> stmts_arg):
+		RunTimeVal(FunctionType), args(args_arg), stmts(stmts_arg){};
+};
