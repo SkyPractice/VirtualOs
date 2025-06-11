@@ -19,7 +19,8 @@ enum StatementType {
 	ConditionActionJmpType,
 	ArrayExpressionType,
 	IndexAccessExpressionType,
-	LambdaExprType
+	LambdaExprType,
+	IndexReinitType
 };
 
 enum ErrorType {
@@ -311,4 +312,15 @@ public:
 		std::vector<std::shared_ptr<StatementObj>> stmts_arg):
 		ExpressionObj(LambdaExprType), args(args_arg), stmts(stmts_arg){};
 
+};
+
+class IndexReInitStmt : public StatementObj {
+public:
+	std::string var_name;
+	std::vector<shared_ptr<ExpressionObj>> index_path;
+	std::shared_ptr<ExpressionObj> val;
+
+	IndexReInitStmt(std::vector<shared_ptr<ExpressionObj>> index_arg, 
+		std::string variable_name, std::shared_ptr<ExpressionObj> new_val): StatementObj(IndexReinitType),
+		index_path(index_arg), var_name(variable_name), val(new_val) {};
 };

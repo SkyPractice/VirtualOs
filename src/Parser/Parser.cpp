@@ -66,6 +66,8 @@ shared_ptr<StatementObj> Parser::parseStatement() {
 		return parseTryStatement();
 	case Throw:
 		return parseThrowStatement();
+	case IndexReinit:
+		return parseIndexReinit();
 	default:
 		return parseExpression();
 		break;
@@ -437,3 +439,22 @@ shared_ptr<ExpressionObj> Parser::parseLambdaExpression(){
 	return make_shared<LambdaExpression>(args, stmts);
 
 }
+
+shared_ptr<IndexReInitStmt> Parser::parseIndexReinit(){
+	const Token reinit_word = advance();
+	const Token var_name = advance();
+
+	std::vector<std::shared_ptr<ExpressionObj>> path;
+	while(token->type == OpenBracket){
+		advance();
+		path.push_back(parseExpression());
+		advance();
+	}
+
+	const Token eq = advance();
+	auto val = parseExpression();
+
+	return std::make_shared<IndexReInitStmt>(
+		path, var_name.symbol, val
+	);
+};

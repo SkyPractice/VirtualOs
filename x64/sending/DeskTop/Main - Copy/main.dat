@@ -1,0 +1,5 @@
+gui
+
+call sleep(300)
+call create_label(window, "Helloworld", 0, 0, 400, 400, 23)
+call create_image(window, "os.png", 0, 100, 400, 400)

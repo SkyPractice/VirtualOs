@@ -152,6 +152,10 @@
     <ClCompile Include="./src/VirtualOs/VirtualOs.cpp" />
     <ClCompile Include="./src/VirtualOs/VirtualOsApp.cpp" />
     <ClCompile Include="./src/DeskTop/StartMenu.cpp"/>
+    <ClCompile Include="./src/StyleSheets/StyleSheetLexer.cpp" />
+    <ClCompile Include="./src/StyleSheets/StyleSheetParser.cpp" />
+    <ClCompile Include="./src/StyleSheets/StyleSheetInterpreter.cpp" />
+
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="./src/Parser/Ast.h" />
@@ -163,6 +167,7 @@
     <ClInclude Include="./src/Interpreter/MhmRt.h" />
     <ClInclude Include="./src/Processes/OutputLabel.h" />
     <ClInclude Include="./src/Processes/Process.h" />
+    <ClInclude Include="./src/Processes/BkTransparentLabel.h" />
     <ClInclude Include="./src/Processes/ProcessWindow.h" />
     <ClInclude Include="./src/Interpreter/Scope.h" />
     <ClInclude Include="./src/DeskTop/StartMenu.h" />
@@ -174,6 +179,10 @@
     <ClInclude Include="./src/VirtualOs/VirtualOsApp.h" />
     <ClInclude Include="./src/CustomMsgs/WindowCreationEvent.h" />
     <ClInclude Include="./src/CustomMsgs/WindowTerminationEvent.h" />
+    <ClInclude Include="./src/StyleSheets/StyleSheetLexer.h" />
+    <ClInclude Include="./src/StyleSheets/StyleSheetParser.h" />
+    <ClInclude Include="./src/StyleSheets/StyleSheetInterpreter.h" />
+    <ClInclude Include="./src/StyleSheets/StyleSheetAst.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

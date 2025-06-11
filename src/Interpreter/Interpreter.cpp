@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include "../CustomMsgs/ButtonCreationEvent.h"
 #include "../Processes/BkTransparentLabel.h"
+#include <wx/app.h>
 
 std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>, 
 	Process*)>> SystemCalls::sys_calls =
@@ -152,7 +153,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 					std::shared_ptr<NumVal> h = std::dynamic_pointer_cast<NumVal>(args[5]);
 					std::shared_ptr<NumVal> font_size = std::dynamic_pointer_cast<NumVal>(args[6]);
 
-					BkTransparentLabel* label;
+					BkTransparentLabel* label = nullptr;
 
 					std::function<void()> fun = [&, window_handle, str,
 						x, y, w, h, font_size](){
@@ -164,7 +165,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 							font_size->number
 						);
 						label->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
-							wxFONTWEIGHT_NORMAL));
+							wxFONTWEIGHT_NORMAL, false, "Geist"));
 						};
 
 					if(!wxThread::IsMain()){
@@ -222,11 +223,12 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 							wxFONTWEIGHT_NORMAL));
 					};
 
+
+					if(!wxThread::IsMain()){
+						
 					std::condition_variable v;
 					std::mutex mut;
 					std::unique_lock<std::mutex> lock(mut);
-
-					if(!wxThread::IsMain()){
 					window_handle->window->CallAfter([&, window_handle, input_str,
 						x, y, width, height, font_size](){
 							{
@@ -270,6 +272,60 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 				return arr;
 
 			} },
+			{ "log_msg", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
+				std::shared_ptr<StringVal> val = std::dynamic_pointer_cast<StringVal>(args[0]);
+				wxLogMessage(val->str.c_str());
+				return nullptr;
+			} },
+			{ "array_resize", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
+				std::shared_ptr<ArrayVal> arr = std::dynamic_pointer_cast<ArrayVal>(args[0]);
+				std::shared_ptr<NumVal> s = std::dynamic_pointer_cast<NumVal>(args[1]);
+
+				arr->elms.resize(static_cast<int>(s->number));
+				return nullptr;
+
+			} },
+			{ "create_image", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
+				std::shared_ptr<Handle> not_fully_casted_window_handle = 
+					std::dynamic_pointer_cast<Handle>(args[0]);
+					
+				std::shared_ptr<ControlHandle> window_handle = 
+					std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+				std::shared_ptr<StringVal> img_path = std::dynamic_pointer_cast<StringVal	>(args[1]);
+				std::shared_ptr<NumVal> x = std::dynamic_pointer_cast<NumVal>(args[2]);
+				std::shared_ptr<NumVal> y = std::dynamic_pointer_cast<NumVal>(args[3]);
+				std::shared_ptr<NumVal> width = std::dynamic_pointer_cast<NumVal>(args[4]);
+				std::shared_ptr<NumVal> height = std::dynamic_pointer_cast<NumVal>(args[5]);
+
+				wxStaticBitmap* bmp = nullptr;
+
+				std::function<void()> fun = [&, window_handle, img_path, x, y, width, height](){
+					wxImage img(img_path->str);
+					bmp = new wxStaticBitmap(window_handle->window, wxID_ANY, 
+					wxBitmapBundle(wxBitmap(img.Scale(width->number, height->number, wxIMAGE_QUALITY_HIGH))), 
+						wxPoint(x->number, y->number + 40), wxSize(width->number, height->number));
+				};
+
+				
+					if(!wxThread::IsMain()){
+					std::condition_variable v;
+					std::mutex mut;
+					std::unique_lock<std::mutex> lock(mut);
+					window_handle->window->CallAfter([&](){
+							{
+								std::unique_lock<std::mutex> locker(mut);
+								fun();
+							}
+							v.notify_all();
+						});
+
+						v.wait(lock, [&]() -> bool { return bmp; });
+					} else fun();
+
+				return std::make_shared<ControlHandle>(ImageControlType, 
+					bmp);
+
+			} },
 			{ "free_handle", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 				std::shared_ptr<Handle> not_fully_casted_window_handle = 
 					std::dynamic_pointer_cast<Handle>(args[0]);
@@ -277,13 +333,14 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 				if(not_fully_casted_window_handle->type == ControlHandleType){
 					std::shared_ptr<ControlHandle> window_handle = 
 						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
-					window_handle->window->GetParent()->CallAfter([&, window_handle](){
-						window_handle->window->GetParent()->RemoveChild(
-							window_handle->window
-						);
+					if(wxTheApp && !wxThread::IsMain()){
+					wxTheApp->CallAfter([&, window_handle](){
+						window_handle->window->Destroy();
 					});
+					} else {
+						window_handle->window->Destroy();
+					}
 
-					window_handle->window->Destroy();
 				}
 
 				return nullptr;
@@ -292,7 +349,6 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 			{ "bind_event_to_handle", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 				std::shared_ptr<Handle> not_fully_casted_window_handle = 
 					std::dynamic_pointer_cast<Handle>(args[0]);
-				try{
 				if(not_fully_casted_window_handle->type == ControlHandleType){
 					std::shared_ptr<ControlHandle> window_handle = 
 						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
@@ -304,21 +360,59 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 						window_handle->window->CallAfter(
 							[&, window_handle, func_val, interp](){
 								window_handle->window->Bind(wxEVT_LEFT_DOWN, [&, interp, func_val, window_handle](wxMouseEvent& evt){
+																				try{
 								auto scope = std::make_shared<Scope>(interp->program_scope);
+								for(auto& copied : func_val->captured_values_by_val){
+									scope->variables.insert(copied);
+								}
 								interp->current_scope = scope;
-								for(auto& stmt : func_val->stmts){
-									interp->evaluate(stmt);
+								interp->current_scope->c_stmt = func_val->stmts.begin();
+								interp->current_scope->c_stmt_end = func_val->stmts.end();
+								while (scope->c_stmt != scope->c_stmt_end) {
+									std::shared_ptr<RunTimeVal> res = interp->evaluate(*interp->current_scope->c_stmt);
+									if (!interp->switched)
+									{
+										interp->current_scope->c_stmt++;
+										if (interp->current_scope->c_stmt == interp->current_scope->c_stmt_end)
+										{
+											if (interp->current_scope->parent_scope != nullptr)
+											{
+												interp->current_scope = interp->current_scope->parent_scope;
+												interp->current_scope->c_stmt++;
+											}
+											else if(res && res->type == SysCallType){
+												std::shared_ptr<SysCallVal> v = std::dynamic_pointer_cast<SysCallVal>(res);
+												SystemCalls::sys_calls[v->name](v->args, interp->proc);
+												break;
+											}
+											else	break;
+										}
+									}
+									else
+									{
+										interp->switched = false;
+									}
+									// syscalls inside events are executed on the main thread
+									if(res){
+									if(res->type == SysCallType){
+										std::shared_ptr<SysCallVal> v = std::dynamic_pointer_cast<SysCallVal>(res);
+										SystemCalls::sys_calls[v->name](v->args, interp->proc);
+									}
+									}
+
 								}
 								interp->current_scope = interp->current_scope->parent_scope;
-								});					
+								} catch(std::exception& exp){
+					wxLogError(exp.what());
+				}		
+								});	
+										
 							}
 						);
 					}
 
 					return std::make_shared<BoolVal>(true);
 				
-				}} catch(std::exception& exp){
-					wxLogError(exp.what());
 				}
 
 
@@ -390,6 +484,8 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluate(std::shared_ptr<StatementObj> 
 		return evaluateContinueStatement();
 	case LambdaExprType:
 		return evaluateLambdaExpr(std::dynamic_pointer_cast<LambdaExpression>(statement));
+	case IndexReinitType:
+		return evaluateIndexReInit(std::dynamic_pointer_cast<IndexReInitStmt>(statement));
 	default:
 		break;
 	}
@@ -681,5 +777,59 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexAccessExpr(std::shared_ptr
 };
 
 std::shared_ptr<RunTimeVal> Interpreter::evaluateLambdaExpr(std::shared_ptr<LambdaExpression> expr){
-	return std::make_shared<FunctionVal>(expr->args, expr->stmts);
+	std::vector<std::pair<std::string, std::shared_ptr<RunTimeVal>>> captured_by_val;
+	std::shared_ptr<Scope> scope = current_scope;
+	while(scope != nullptr){
+		for(auto& p : scope->variables){
+			switch (p.second->type)
+			{
+			case StringType:
+				captured_by_val.push_back({ std::string(p.first + "_" + "copy"), 
+				std::make_shared<StringVal>(*std::dynamic_pointer_cast<StringVal>(p.second)) });
+				break;
+			case NumType:
+							captured_by_val.push_back({ std::string(p.first + "_" + "copy"), 
+				std::make_shared<NumVal>(*std::dynamic_pointer_cast<NumVal>(p.second)) });
+				break;
+			case BoolType:
+										captured_by_val.push_back({ std::string(p.first + "_" + "copy"), 
+				std::make_shared<BoolVal>(*std::dynamic_pointer_cast<BoolVal>(p.second)) });
+				break;
+			case ArrayType:
+			captured_by_val.push_back({ std::string(p.first + "_" + "copy"), 
+				std::make_shared<ArrayVal>(*std::dynamic_pointer_cast<ArrayVal>(p.second)) });
+				break;
+						case FunctionType:
+			captured_by_val.push_back({ std::string(p.first + "_" + "copy"), 
+				std::make_shared<FunctionVal>(*std::dynamic_pointer_cast<FunctionVal>(p.second)) });
+				break;
+			default:
+				break;
+			}
+		}
+		scope = scope->parent_scope;
+	}
+
+	return std::make_shared<FunctionVal>(expr->args, expr->stmts, captured_by_val);
+}
+
+std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexReInit(std::shared_ptr<IndexReInitStmt> stmt){
+
+	std::dynamic_pointer_cast<ArrayVal>(current_scope->lookUpVar(stmt->var_name))->elms[
+		static_cast<int>(std::dynamic_pointer_cast<NumVal>(
+		stmt->index_path.back())->number)
+	] = evaluate(stmt->val);
+	// points to the val that needs to get changed
+	
+	// for(int num = 0; num < stmt->index_path.size() - 1; num++){
+	// 	finale_ptr = std::dynamic_pointer_cast<ArrayVal>(finale_ptr->elms[
+	// 		static_cast<int>(std::dynamic_pointer_cast<NumVal>(evaluate(stmt->index_path[num]))->number)
+	// 	]);
+	// }
+
+	// finale_ptr->elms[static_cast<int>(std::dynamic_pointer_cast<NumVal>(
+	// 	stmt->index_path.back())->number)] = evaluate(stmt->val);
+
+	return nullptr;
+
 }

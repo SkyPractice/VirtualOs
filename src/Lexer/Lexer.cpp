@@ -3,7 +3,7 @@
 char Lexer::ch = '\0';
 int Lexer::idx = 0;
 std::string Lexer::source_code = "";
-std::string Lexer::skip_str = "\t \n\r";
+std::string Lexer::skip_str = "\t \n\r	";
 std::unordered_map<std::string, TokenAst> Lexer::known_tokens = {
 	{ "(", OpenParen }, { ")", CloseParen } , { "{", OpenBrace }, { "}", CloseBrace },
 	{ "[", OpenBracket }, { "]", CloseBracket },
@@ -13,7 +13,7 @@ std::unordered_map<std::string, TokenAst> Lexer::known_tokens = {
 	{ "if", If}, { "elseif", ElseIf}, { "else", Else }, { "while", While }, { "for", For },
 	{ "class", Class }, { ">", BinaryOperator }, { "<", BinaryOperator }, { "throw", Throw },
 	{ "catch", Catch }, { "try", Try }, { "reinit", ReInit }, { "return", Return }, { "break", Break },
-	{ "continue", Continue }, {"lambda", Lambda}
+	{ "continue", Continue }, {"lambda", Lambda}, { "index_reinit", IndexReinit }
 };
 
 std::vector<Token> Lexer::tokenize(std::string source_path) {

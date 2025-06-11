@@ -6,7 +6,7 @@
 #include <functional>
 #include <unordered_set>
 
-
+class Process;
 
 class Interpreter {
 public:
@@ -14,6 +14,7 @@ public:
 	shared_ptr<Scope> program_scope;
 	shared_ptr<Scope> current_scope;
 	std::shared_ptr<StatementObj> stmt;
+	Process* proc;
 	bool switched = false;
 	bool try_mode = false;
 
@@ -51,6 +52,7 @@ public:
 	std::shared_ptr<RunTimeVal> evaluateIndexAccessExpr(std::shared_ptr<IndexAccessExpr> expr);
 	std::shared_ptr<RunTimeVal> evaluateFunctionCall(std::shared_ptr<FunctionCall> call);
 	std::shared_ptr<RunTimeVal> evaluateLambdaExpr(std::shared_ptr<LambdaExpression> expr);
+	std::shared_ptr<RunTimeVal> evaluateIndexReInit(std::shared_ptr<IndexReInitStmt> stmt);
 
 };
 

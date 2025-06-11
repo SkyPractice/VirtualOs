@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <wx/wx.h>
+#include <wx/app.h>
 #include "../Parser/Ast.h"
 
 enum RunTimeValType {
@@ -78,14 +79,17 @@ public:
 	ControlHandle(ControlType control_t, wxWindow* wind): Handle(ControlHandleType), control_type(control_t),
 		window(wind) {};
 
+
 };
 
 class FunctionVal : public RunTimeVal {
 public:
 	std::vector<std::string> args;
 	std::vector<std::shared_ptr<StatementObj>> stmts;
+	std::vector<std::pair<std::string, std::shared_ptr<RunTimeVal>>> captured_values_by_val;
 	
 	FunctionVal(std::vector<std::string> args_arg, 
-		std::vector<std::shared_ptr<StatementObj>> stmts_arg):
-		RunTimeVal(FunctionType), args(args_arg), stmts(stmts_arg){};
+		std::vector<std::shared_ptr<StatementObj>> stmts_arg,
+		std::vector<std::pair<std::string, std::shared_ptr<RunTimeVal>>> captured_vals):
+		RunTimeVal(FunctionType), args(args_arg), stmts(stmts_arg), captured_values_by_val(captured_vals){};
 };

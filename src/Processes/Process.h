@@ -30,6 +30,7 @@ public:
 		std::mutex& m, ProcessWindow* win) : interpreter(statements),
 		interrupt_vec(interrupts), kernel_mutex(m),
 	window(win){
+		interpreter.proc = this;
 		random_iden = rand();
 	};
 

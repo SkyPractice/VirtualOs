@@ -1,0 +1,29 @@
+gui
+
+call directory_iterator("/")
+
+variable dirs = eax
+variable size = call array_size(dirs)
+variable i = 0
+variable window_size = call get_window_size(window)
+variable x = 0
+variable other_i = 0
+variable buttons = []
+
+while i < size {
+
+    if other_i > 40 {
+        reinit other_i = 0
+        reinit x = x + (window_size[0])
+    }
+
+
+    call array_push_back(buttons, call create_button(window, dirs[i], x, 20 * (other_i), window_size[0], 20, 12))
+
+
+    reinit i = i + 1
+    reinit other_i = other_i + 1
+    if(i > 200) { break }
+}
+
+call interrupt()
