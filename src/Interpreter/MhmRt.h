@@ -15,7 +15,7 @@ enum HandleType{
 };
 
 enum ControlType{
-	LabelControlType, ButtonControlType, ImageControlType, FrameControlType
+	LabelControlType, ButtonControlType, ImageControlType, FrameControlType, InputControlType
 };
 
 class RunTimeVal {

@@ -92,6 +92,7 @@ std::string Process::doHttpRequest(std::string scheme, std::string host, std::st
 	{
 
 		boost::asio::ssl::stream<boost::asio::ip::tcp::socket> sock(BoostBundler::io_ctx, BoostBundler::ssl_ctx);
+		SSL_set_tlsext_host_name(sock.native_handle(), host.c_str());
 		auto result = resolver.resolve(host, "https");
 
 		boost::asio::connect(sock.lowest_layer(), result);

@@ -20,7 +20,8 @@ enum StatementType {
 	ArrayExpressionType,
 	IndexAccessExpressionType,
 	LambdaExprType,
-	IndexReinitType
+	IndexReinitType,
+	StructDeclerationType
 };
 
 enum ErrorType {
@@ -295,12 +296,12 @@ public:
 
 class IndexAccessExpr : public ExpressionObj {
 public:
-	std::string var_name;
+	shared_ptr<ExpressionObj> array_expr;
 	std::vector<shared_ptr<ExpressionObj>> index_path;
 
 	IndexAccessExpr(std::vector<shared_ptr<ExpressionObj>> index_arg, 
-		std::string variable_name): ExpressionObj(IndexAccessExpressionType),
-		index_path(index_arg), var_name(variable_name) {};
+		shared_ptr<ExpressionObj> array_expression): ExpressionObj(IndexAccessExpressionType),
+		index_path(index_arg), array_expr(array_expression) {};
 };
 
 class LambdaExpression : public ExpressionObj {
@@ -316,11 +317,21 @@ public:
 
 class IndexReInitStmt : public StatementObj {
 public:
-	std::string var_name;
+	std::shared_ptr<ExpressionObj> var_val;
 	std::vector<shared_ptr<ExpressionObj>> index_path;
 	std::shared_ptr<ExpressionObj> val;
 
 	IndexReInitStmt(std::vector<shared_ptr<ExpressionObj>> index_arg, 
-		std::string variable_name, std::shared_ptr<ExpressionObj> new_val): StatementObj(IndexReinitType),
-		index_path(index_arg), var_name(variable_name), val(new_val) {};
+		std::shared_ptr<ExpressionObj> variable_val, std::shared_ptr<ExpressionObj> new_val): StatementObj(IndexReinitType),
+		index_path(index_arg), var_val(variable_val), val(new_val) {};
+};
+
+class StructDecleration : public StatementObj{
+public:
+	std::string name;
+	std::vector<std::string> props
+	
+	StructDecleration(std::strint struc_name,
+		std::vector<std::string> struc_props_names): StatementObj(StructDeclerationType),
+		name(struc_name), props(struc_props_names) {};
 };

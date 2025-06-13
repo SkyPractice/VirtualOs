@@ -299,7 +299,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 
 						v.wait(lock, [&]() -> bool { return txt_input; });
 					} else fun();
-					return std::make_shared<ControlHandle>(ButtonControlType, 
+					return std::make_shared<ControlHandle>(InputControlType, 
 						txt_input);
 
 				}
@@ -405,6 +405,33 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 				return nullptr;
 
 			} },
+			{ "get_window_text", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
+				std::shared_ptr<Handle> not_fully_casted_window_handle = 
+					std::dynamic_pointer_cast<Handle>(args[0]);
+				
+				if(not_fully_casted_window_handle->type == ControlHandleType){
+					std::shared_ptr<ControlHandle> window_handle = 
+						std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+
+					if(window_handle->type == InputControlType){
+						wxTextCtrl* input = dynamic_cast<wxTextCtrl*>(window_handle->window);
+						return std::make_shared<StringVal>(std::string(input->GetValue().ToStdString()));
+					} else if (window_handle->type == LabelControlType){
+						wxStaticText* txt = dynamic_cast<wxStaticText*>(window_handle->window);
+						return std::make_shared<StringVal>(txt->GetLabelText().ToStdString());
+					} else if (window_handle->type == ButtonControlType){
+						wxButton* btn = dynamic_cast<wxButton*>(window_handle->window);
+						return std::make_shared<StringVal>(btn->GetLabelText().ToStdString());
+					}
+				}
+	
+				return nullptr;
+
+			} },
+			{"create_panel", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
+				return nullptr;	
+			}}
+			,
 			{ "bind_event_to_handle", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
 				std::shared_ptr<Handle> not_fully_casted_window_handle = 
 					std::dynamic_pointer_cast<Handle>(args[0]);
@@ -842,7 +869,7 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateArrayExpr(std::shared_ptr<Array
 }
 
 std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexAccessExpr(std::shared_ptr<IndexAccessExpr> expr){
-	std::shared_ptr<RunTimeVal> current_val = evaluate(make_shared<IdentifierExpr>(expr->var_name));
+	std::shared_ptr<RunTimeVal> current_val = evaluate(expr->array_expr);
 
 	for(auto& num : expr->index_path){
 		current_val = std::dynamic_pointer_cast<ArrayVal>(current_val)->elms[
@@ -889,22 +916,18 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateLambdaExpr(std::shared_ptr<Lamb
 	return std::make_shared<FunctionVal>(expr->args, expr->stmts, captured_by_val);
 };
 
-std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexReInit(std::shared_ptr<IndexReInitStmt> stmt){
+std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexReInit(std::shared_ptr<IndexReInitStmt> stmt){	
 
-	std::dynamic_pointer_cast<ArrayVal>(current_scope->lookUpVar(stmt->var_name))->elms[
-		static_cast<int>(std::dynamic_pointer_cast<NumVal>(
-		stmt->index_path.back())->number)
-	] = evaluate(stmt->val);
-	// points to the val that needs to get changed
+	std::shared_ptr<ArrayVal> finale_ptr = std::dynamic_pointer_cast<ArrayVal>(evaluate(stmt->var_val));
+	//points to the val that needs to get changed
 	
-	// for(int num = 0; num < stmt->index_path.size() - 1; num++){
-	// 	finale_ptr = std::dynamic_pointer_cast<ArrayVal>(finale_ptr->elms[
-	// 		static_cast<int>(std::dynamic_pointer_cast<NumVal>(evaluate(stmt->index_path[num]))->number)
-	// 	]);
-	// }
-
-	// finale_ptr->elms[static_cast<int>(std::dynamic_pointer_cast<NumVal>(
-	// 	stmt->index_path.back())->number)] = evaluate(stmt->val);
+	for(int num = 0; num < stmt->index_path.size() - 1; num++){
+		finale_ptr = std::dynamic_pointer_cast<ArrayVal>(finale_ptr->elms[
+			static_cast<int>(std::dynamic_pointer_cast<NumVal>(evaluate(stmt->index_path[num]))->number)
+		]);
+	}
+	finale_ptr->elms[static_cast<int>(std::dynamic_pointer_cast<NumVal>(
+		evaluate(stmt->index_path.back()))->number)] = evaluate(stmt->val);
 
 	return nullptr;
 

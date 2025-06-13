@@ -1,5 +1,7 @@
 #include "VirtualOsApp.h"
 #include "../Kernel/Kernel.h"
+#include <wx/rawbmp.h> // Sometimes needed for modern image handlers, or just wx/image.h
+#include <wx/image.h>   // Required for wxImage and image handlers
 
 wxChar** VirtualOsApp::my_argv = nullptr;
 

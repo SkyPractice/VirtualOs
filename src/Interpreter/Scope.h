@@ -30,6 +30,11 @@ public:
 		return scope->variables[name];
 	}
 
+	shared_ptr<RunTimeVal>& lookUpVarByRef(std::string name) {
+		shared_ptr<Scope> scope = popUp(name);
+		if (scope == nullptr) throw std::exception("Variable Not Found");
+		return scope->variables[name];
+	}
 
 	void setVar(std::string var_name, shared_ptr<RunTimeVal> val) {
 		shared_ptr<Scope> scope = popUp(var_name);

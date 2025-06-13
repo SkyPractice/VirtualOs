@@ -17,6 +17,7 @@ public:
 	Process* proc;
 	bool switched = false;
 	bool try_mode = false;
+	std::unordered_map<std::string, std::shared_ptr<StructDecleration>> struct_decls;
 
 	Interpreter(std::vector<shared_ptr<StatementObj>> statements) : stmts(statements),
 		program_scope(std::make_shared<Scope>(nullptr)){

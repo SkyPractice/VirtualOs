@@ -68,6 +68,8 @@ shared_ptr<StatementObj> Parser::parseStatement() {
 		return parseThrowStatement();
 	case IndexReinit:
 		return parseIndexReinit();
+	case IndexAccess:
+		return parseIndexAccessExpression();
 	default:
 		return parseExpression();
 		break;
@@ -116,25 +118,14 @@ shared_ptr<ExpressionObj> Parser::parseComparativeExpression() {
 
 shared_ptr<ExpressionObj> Parser::parsePrimaryExpression() {
 
-	if (token->type == Identifier && (token + 1)->type == OpenBracket)
-	{
-		const Token var_name = advance();
-		std::vector<std::shared_ptr<ExpressionObj>> path;
-		while(token->type == OpenBracket){
-			advance();
-			path.push_back(parseExpression());
-			advance();
-		}
-
-		return make_shared<IndexAccessExpr>(path, var_name.symbol);
-	}
-
 	switch (token->type)
 	{
 	case Call:
 		return parseFunctionCallExpression();
 	case String:
 		return parseStringExpression();
+	case IndexAccess:
+		return parseIndexAccessExpression();
 	case True:
 	case False:
 		return parseBooleanExpression();
@@ -394,21 +385,18 @@ shared_ptr<ExpressionObj> Parser::parseArrayExpression(){
 
 shared_ptr<ExpressionObj> Parser::parseIndexAccessExpression()
 {
-	
-	if (token->type == Identifier && (token + 1)->type == OpenBracket)
-	{
-		const Token var_name = advance();
-		std::vector<std::shared_ptr<ExpressionObj>> path;
-		while(token->type == OpenBracket){
-			advance();
-			path.push_back(parseExpression());
-			advance();
-		}
 
-		return make_shared<IndexAccessExpr>(path, var_name.symbol);
+	const Token idx = advance();
+	auto expr = parseExpression();
+	std::vector<std::shared_ptr<ExpressionObj>> path;
+	while (token->type == OpenBracket)
+	{
+		advance();
+		path.push_back(parseExpression());
+		advance();
 	}
 
-	return parseComparativeExpression();
+	return make_shared<IndexAccessExpr>(path, expr);
 }
 
 shared_ptr<ExpressionObj> Parser::parseLambdaExpression(){
@@ -442,7 +430,7 @@ shared_ptr<ExpressionObj> Parser::parseLambdaExpression(){
 
 shared_ptr<IndexReInitStmt> Parser::parseIndexReinit(){
 	const Token reinit_word = advance();
-	const Token var_name = advance();
+	auto var_val = parseExpression();
 
 	std::vector<std::shared_ptr<ExpressionObj>> path;
 	while(token->type == OpenBracket){
@@ -455,6 +443,6 @@ shared_ptr<IndexReInitStmt> Parser::parseIndexReinit(){
 	auto val = parseExpression();
 
 	return std::make_shared<IndexReInitStmt>(
-		path, var_name.symbol, val
+		path, var_val, val
 	);
 };
