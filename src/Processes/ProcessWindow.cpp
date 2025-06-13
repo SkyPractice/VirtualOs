@@ -104,7 +104,7 @@ void ProcessWindow::onLeftButtonDown(wxMouseEvent& evt) {
 	}
 	else if (mouse_x > w - 70 && mouse_x < w - 50 && mouse_y < 30 && mouse_y > 10) {
 
-		if (this->GetSize() != this->GetParent()->GetSize()) {
+		if (this->GetSize().GetWidth() != this->GetParent()->GetSize().GetWidth()) {
 			last_pos = this->GetPosition();
 			SetPosition(wxPoint(0, 0));
 			last_size = this->GetSize();

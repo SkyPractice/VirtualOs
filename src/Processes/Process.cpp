@@ -214,6 +214,4 @@ void Process::processFileDownloadRequest(std::shared_ptr<FileDownloadRequest> re
 Process::~Process() {
 	io_operation = nullptr;
 	wakeUpIoThread();
-	if(window)
-		window->Destroy();
 };

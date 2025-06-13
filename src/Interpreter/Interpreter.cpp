@@ -165,7 +165,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 							window_handle->window,
 							wxID_ANY,
 							button_str->str,
-							wxPoint(button_x->number, button_y->number + 40),
+							wxPoint(button_x->number, button_y->number),
 							wxSize(button_width->number, button_height->number)
 						);
 						btn->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
@@ -218,7 +218,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 						x, y, w, h, font_size](){
 						label = new BkTransparentLabel(
 							window_handle->window,
-							x->number, y->number + 40,
+							x->number, y->number,
 							w->number, h->number,
 							str->str,
 							font_size->number
@@ -275,7 +275,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 							window_handle->window,
 							wxID_ANY,
 							input_str->str,
-							wxPoint(x->number, y->number + 40),
+							wxPoint(x->number, y->number),
 							wxSize(width->number, height->number)
 						);
 						txt_input->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
@@ -362,7 +362,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 					wxImage img(img_path->str);
 					bmp = new wxStaticBitmap(window_handle->window, wxID_ANY, 
 					wxBitmapBundle(wxBitmap(img.Scale(width->number, height->number, wxIMAGE_QUALITY_HIGH))), 
-						wxPoint(x->number, y->number + 40), wxSize(width->number, height->number));
+						wxPoint(x->number, y->number), wxSize(width->number, height->number));
 				};
 
 				
@@ -429,7 +429,42 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 
 			} },
 			{"create_panel", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
-				return nullptr;	
+				std::shared_ptr<Handle> not_fully_casted_window_handle = 
+					std::dynamic_pointer_cast<Handle>(args[0]);
+					
+				std::shared_ptr<ControlHandle> window_handle = 
+					std::dynamic_pointer_cast<ControlHandle>(not_fully_casted_window_handle);
+				
+				std::shared_ptr<NumVal> x = std::dynamic_pointer_cast<NumVal>(args[1]);
+				std::shared_ptr<NumVal> y = std::dynamic_pointer_cast<NumVal>(args[2]);
+				std::shared_ptr<NumVal> width = std::dynamic_pointer_cast<NumVal>(args[3]);
+				std::shared_ptr<NumVal> height = std::dynamic_pointer_cast<NumVal>(args[4]);
+
+				wxPanel* panel = nullptr;
+
+				std::function<void()> fun = [&, window_handle, x, y, width, height](){
+					panel = new wxPanel(window_handle->window, wxID_ANY,  
+						wxPoint(x->number, y->number), wxSize(width->number, height->number));
+				};
+
+				
+				if(!wxThread::IsMain()){
+					std::condition_variable v;
+					std::mutex mut;
+					std::unique_lock<std::mutex> lock(mut);
+					window_handle->window->CallAfter([&](){
+							{
+								std::unique_lock<std::mutex> locker(mut);
+								fun();
+							}
+							v.notify_all();
+						});
+
+						v.wait(lock, [&]() -> bool { return panel; });
+					} else fun();
+
+				return std::make_shared<ControlHandle>(PanelControlType, 
+					panel);
 			}}
 			,
 			{ "bind_event_to_handle", [&](std::vector<shared_ptr<RunTimeVal>> args, Interpreter* interp) -> shared_ptr<RunTimeVal> {
@@ -572,6 +607,8 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluate(std::shared_ptr<StatementObj> 
 		return evaluateLambdaExpr(std::dynamic_pointer_cast<LambdaExpression>(statement));
 	case IndexReinitType:
 		return evaluateIndexReInit(std::dynamic_pointer_cast<IndexReInitStmt>(statement));
+	case StructDeclerationType:
+		return evaluateStructDecleration(std::dynamic_pointer_cast<StructDecleration>(statement));
 	default:
 		break;
 	}
@@ -931,4 +968,9 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexReInit(std::shared_ptr<Ind
 
 	return nullptr;
 
+};
+
+std::shared_ptr<RunTimeVal> Interpreter::evaluateStructDecleration(std::shared_ptr<StructDecleration> decl){
+	struct_decls[decl->name] = decl;
+	return nullptr;
 };

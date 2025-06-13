@@ -34,7 +34,7 @@ public:
 	static shared_ptr<TryStatement> parseTryStatement(); // includes catch
 	static shared_ptr<ThrowStatement> parseThrowStatement();
 	static shared_ptr<IndexReInitStmt> parseIndexReinit();
-
+	static shared_ptr<StructDecleration> parseStructDecleration();
 
 	static shared_ptr<ExpressionObj> parsePrimaryExpression();
 

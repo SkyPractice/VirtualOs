@@ -5,9 +5,10 @@
 #include <wx/wx.h>
 #include <wx/app.h>
 #include "../Parser/Ast.h"
+#include <unordered_map>
 
 enum RunTimeValType {
-	NumType, StringType, BoolType, SysCallType, ArrayType, HANDLETYPE, FunctionType
+	NumType, StringType, BoolType, SysCallType, ArrayType, HANDLETYPE, FunctionType, StructType
 };
 
 enum HandleType{
@@ -15,7 +16,8 @@ enum HandleType{
 };
 
 enum ControlType{
-	LabelControlType, ButtonControlType, ImageControlType, FrameControlType, InputControlType
+	LabelControlType, ButtonControlType, ImageControlType, FrameControlType, InputControlType,
+	PanelControlType
 };
 
 class RunTimeVal {
@@ -92,4 +94,12 @@ public:
 		std::vector<std::shared_ptr<StatementObj>> stmts_arg,
 		std::vector<std::pair<std::string, std::shared_ptr<RunTimeVal>>> captured_vals):
 		RunTimeVal(FunctionType), args(args_arg), stmts(stmts_arg), captured_values_by_val(captured_vals){};
+};
+
+class StructVal : public RunTimeVal {
+public:
+	std::unordered_map<std::string, std::shared_ptr<RunTimeVal>> values;
+
+	StructVal(std::unordered_map<std::string, std::shared_ptr<RunTimeVal>> vals): 
+		RunTimeVal(StructType), values(vals) {};
 };

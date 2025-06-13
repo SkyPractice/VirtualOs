@@ -100,6 +100,7 @@ public:
 
 		}
 	}){
+		io_thread.detach();
 		interpreter.proc = this;
 		random_iden = rand();
 	};

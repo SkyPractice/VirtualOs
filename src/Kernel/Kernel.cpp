@@ -81,6 +81,7 @@ void Kernel::doLifeCycle() {
 	
 }
 // Returns true if the process vec was edited
+// syscalls should be here but i forgot and im not moving it cause it will kill me
 bool Kernel::processInterrupts() {
 	std::lock_guard<std::mutex> locker(mutex);
 	bool edited = false;
@@ -114,6 +115,7 @@ bool Kernel::processInterrupts() {
 				{
 					wxQueueEvent(os->desktop, new WindowTerminationEvent((*itr)->random_iden));
 					processes.erase(itr);
+					current_process = nullptr;
 				}
 				edited = true;
 			}

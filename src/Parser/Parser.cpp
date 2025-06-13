@@ -70,6 +70,8 @@ shared_ptr<StatementObj> Parser::parseStatement() {
 		return parseIndexReinit();
 	case IndexAccess:
 		return parseIndexAccessExpression();
+	case Struct:
+		return parseStructDecleration();
 	default:
 		return parseExpression();
 		break;
@@ -445,4 +447,24 @@ shared_ptr<IndexReInitStmt> Parser::parseIndexReinit(){
 	return std::make_shared<IndexReInitStmt>(
 		path, var_val, val
 	);
+};
+
+shared_ptr<StructDecleration> Parser::parseStructDecleration(){
+	const Token struct_word = advance();
+	const Token struct_name = advance();
+	const Token open_paren = advance();
+
+	std::vector<std::string> struct_props;
+
+	while(token->type != CloseParen){
+		struct_props.push_back(advance().symbol);
+		if(token->type == Comma)
+			advance();
+		else if(token->type == CloseParen)
+			break;
+	}
+
+	const Token close_paren = advance();
+
+	return std::make_shared<StructDecleration>(struct_name.symbol, struct_props);
 };

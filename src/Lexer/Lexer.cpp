@@ -13,7 +13,8 @@ std::unordered_map<std::string, TokenAst> Lexer::known_tokens = {
 	{ "if", If}, { "elseif", ElseIf}, { "else", Else }, { "while", While }, { "for", For },
 	{ "class", Class }, { ">", BinaryOperator }, { "<", BinaryOperator }, { "throw", Throw },
 	{ "catch", Catch }, { "try", Try }, { "reinit", ReInit }, { "return", Return }, { "break", Break },
-	{ "continue", Continue }, {"lambda", Lambda},{"idx", IndexAccess},  { "idx_reinit", IndexReinit }
+	{ "continue", Continue }, {"lambda", Lambda},{"idx", IndexAccess},  { "idx_reinit", IndexReinit },
+	{ "struct", Struct }
 };
 
 std::vector<Token> Lexer::tokenize(std::string source_path) {

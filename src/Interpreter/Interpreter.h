@@ -56,6 +56,7 @@ public:
 	std::shared_ptr<RunTimeVal> evaluateIndexReInit(std::shared_ptr<IndexReInitStmt> stmt);
 	std::shared_ptr<RunTimeVal> evaluateStringBinaryExpr(std::shared_ptr<StringVal> left, 
 		std::shared_ptr<StringVal> right, std::string op);
+	std::shared_ptr<RunTimeVal> evaluateStructDecleration(std::shared_ptr<StructDecleration> decl);
 
 };
 

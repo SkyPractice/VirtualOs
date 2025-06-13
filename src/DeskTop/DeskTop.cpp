@@ -2,6 +2,8 @@
 #include "../CustomMsgs/WindowCreationEvent.h"
 #include "../CustomMsgs/WindowTerminationEvent.h"
 #include "../CustomMsgs/ButtonCreationEvent.h"
+#include "../Lexer/Lexer.h"
+
 
 wxDECLARE_EVENT(MY_CUSTOM_EVENT, WindowCreationEvent);
 wxDEFINE_EVENT(MY_CUSTOM_EVENT, WindowCreationEvent);
@@ -31,7 +33,13 @@ DeskTop::DeskTop(wxWindow* parent) : wxPanel(parent) {
 
 	this->SetBackgroundStyle(wxBG_STYLE_PAINT);
 	this->SetBackgroundColour(wxTransparentColour);
-	wxImage img("wallpaper.jpg");
+	wxImage img;
+	for(auto dir : fs::directory_iterator("./")){
+		if(dir.path().filename().string().starts_with("wallpaper") && !dir.is_directory()){
+			img = wxImage(dir.path().filename().string());
+		}
+	}
+
 	bmp = wxBitmap(img);
 	this->Bind(wxEVT_PAINT, &DeskTop::onPaint, this);
 	this->Bind(wxEVT_SIZE, [&](wxSizeEvent& evt) -> void {
@@ -41,7 +49,7 @@ DeskTop::DeskTop(wxWindow* parent) : wxPanel(parent) {
 		start_menu->SetPosition(wxPoint(10, evt.GetSize().GetHeight() - 10 - 350 - 30));
 		});
 
-	this->Bind(MY_CUSTOM_EVENT, [=](WindowCreationEvent& evt) {
+	this->Bind(MY_CUSTOM_EVENT, [&](WindowCreationEvent& evt) {
 		ProcessWindow* process_window = new ProcessWindow(this, evt.window_name, evt.interrupts_vec,
 			evt.kernel_mut, evt.process_caller, evt.process_img, evt.type);
 		
@@ -52,17 +60,18 @@ DeskTop::DeskTop(wxWindow* parent) : wxPanel(parent) {
 		evt.process_caller->window = process_window;
 		process_windows.push_back(process_window);
 		evt.process_caller->suspended = false;
+		task_bar->Refresh();
 		});
 
 	this->Bind(WINDOW_TERMINATION_EVENT, [&](WindowTerminationEvent& evt) {
 		auto itr = std::find_if(process_windows.begin(), process_windows.end(), [&](ProcessWindow* window)
 			{ return window->id == evt.window_id; });
 
-		if (itr != process_windows.end()) {
-						
+		if (itr != process_windows.end()) {	
+			(*itr)->Destroy();
 			delete (*itr)->process; // deleting the process automatically deletes the window
-
 			process_windows.erase(itr);
+			task_bar->Refresh();
 		}
 		});
 	this->Bind(wxEVT_LEFT_DOWN, [&](wxMouseEvent& evt){

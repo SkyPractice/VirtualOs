@@ -329,9 +329,9 @@ public:
 class StructDecleration : public StatementObj{
 public:
 	std::string name;
-	std::vector<std::string> props
+	std::vector<std::string> props;
 	
-	StructDecleration(std::strint struc_name,
+	StructDecleration(std::string struc_name,
 		std::vector<std::string> struc_props_names): StatementObj(StructDeclerationType),
 		name(struc_name), props(struc_props_names) {};
 };
