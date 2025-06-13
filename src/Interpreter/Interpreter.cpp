@@ -49,6 +49,65 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 	{ "interrupt", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
 		return nullptr;
 	}},
+	{ "get_http_request", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
+		std::string ip_addr = std::dynamic_pointer_cast<StringVal>(args[0])->str;
+		std::shared_ptr<GetRequest> req = std::make_shared<GetRequest>(ip_addr);
+		caller->io_operation = req;
+
+		caller->suspended = true;
+
+		caller->wakeUpIoThread();
+
+		return nullptr;
+	}},
+	{ "post_http_request", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
+		std::string ip_addr = std::dynamic_pointer_cast<StringVal>(args[0])->str;
+		std::string body = std::dynamic_pointer_cast<StringVal>(args[1])->str;
+		std::shared_ptr<PostRequest> req = std::make_shared<PostRequest>(ip_addr, body);
+		caller->io_operation = req;
+
+		caller->suspended = true;
+
+		caller->wakeUpIoThread();
+
+		return nullptr;
+	}},
+	{ "put_http_request", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
+		std::string ip_addr = std::dynamic_pointer_cast<StringVal>(args[0])->str;
+		std::string body = std::dynamic_pointer_cast<StringVal>(args[1])->str;
+		std::shared_ptr<PutRequest> req = std::make_shared<PutRequest>(ip_addr, body);
+		caller->io_operation = req;
+
+		caller->suspended = true;
+
+		caller->wakeUpIoThread();
+
+		return nullptr;
+	}},
+	{ "delete_http_request", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
+		std::string ip_addr = std::dynamic_pointer_cast<StringVal>(args[0])->str;
+		std::string body = std::dynamic_pointer_cast<StringVal>(args[1])->str;
+		std::shared_ptr<DeleteRequest> req = std::make_shared<DeleteRequest>(ip_addr, body);
+		caller->io_operation = req;
+
+		caller->suspended = true;
+
+		caller->wakeUpIoThread();
+
+		return nullptr;
+	}},
+	{ "download_file", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
+		std::string ip_addr = std::dynamic_pointer_cast<StringVal>(args[0])->str;
+		std::string file_NAme = std::dynamic_pointer_cast<StringVal>(args[1])->str;
+		std::shared_ptr<FileDownloadRequest> req = std::make_shared<FileDownloadRequest>(ip_addr, file_NAme);
+		caller->io_operation = req;
+
+		caller->suspended = true;
+
+		caller->wakeUpIoThread();
+
+		return nullptr;
+	}},
 	{ "directory_iterator", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
 		std::shared_ptr<ArrayVal> val = std::make_shared<ArrayVal>(std::vector<std::shared_ptr<RunTimeVal>>());
 		for(auto& p : fs::directory_iterator(std::dynamic_pointer_cast<StringVal>(args[0])->str)){
@@ -501,6 +560,12 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateBinaryExpr(std::shared_ptr<Bina
 
 		return evaluateNumericBinaryExpr(real_left, real_right, expr->op);
 	}
+	else if (left->type == StringType && right->type == StringType) {
+		const auto real_left = std::dynamic_pointer_cast<StringVal>(left);
+		const auto real_right = std::dynamic_pointer_cast<StringVal>(right);
+
+		return evaluateStringBinaryExpr(real_left, real_right, expr->op);
+	}
 	else if (left->type == BoolType && right->type == BoolType) {
 		const auto real_left = std::dynamic_pointer_cast<BoolVal>(left);
 		const auto real_right = std::dynamic_pointer_cast<BoolVal>(right);
@@ -511,6 +576,17 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateBinaryExpr(std::shared_ptr<Bina
 	throw std::exception("Unexcepted Expression");
 
 };
+std::shared_ptr<RunTimeVal> Interpreter::evaluateStringBinaryExpr(std::shared_ptr<StringVal> left, 
+		std::shared_ptr<StringVal> right, std::string op){
+	if(op == "+")
+		return std::make_shared<StringVal>(left->str + right->str);
+	else if(op == "==")
+		return std::make_shared<BoolVal>(left->str == right->str);
+	else if (op == "=!")
+		return std::make_shared<BoolVal>(left->str != right->str);
+	
+	return std::make_shared<StringVal>(left->str + right->str);
+}
 std::shared_ptr<RunTimeVal> Interpreter::evaluateNumericBinaryExpr(
 	std::shared_ptr<NumVal> left, std::shared_ptr<NumVal> right, std::string op
 ) { 
@@ -811,7 +887,7 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateLambdaExpr(std::shared_ptr<Lamb
 	}
 
 	return std::make_shared<FunctionVal>(expr->args, expr->stmts, captured_by_val);
-}
+};
 
 std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexReInit(std::shared_ptr<IndexReInitStmt> stmt){
 
@@ -832,4 +908,4 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateIndexReInit(std::shared_ptr<Ind
 
 	return nullptr;
 
-}
+};

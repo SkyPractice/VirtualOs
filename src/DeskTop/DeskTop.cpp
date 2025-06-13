@@ -59,9 +59,7 @@ DeskTop::DeskTop(wxWindow* parent) : wxPanel(parent) {
 			{ return window->id == evt.window_id; });
 
 		if (itr != process_windows.end()) {
-
-			this->RemoveChild(*itr);
-			
+						
 			delete (*itr)->process; // deleting the process automatically deletes the window
 
 			process_windows.erase(itr);

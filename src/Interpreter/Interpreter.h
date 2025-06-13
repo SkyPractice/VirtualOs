@@ -53,6 +53,8 @@ public:
 	std::shared_ptr<RunTimeVal> evaluateFunctionCall(std::shared_ptr<FunctionCall> call);
 	std::shared_ptr<RunTimeVal> evaluateLambdaExpr(std::shared_ptr<LambdaExpression> expr);
 	std::shared_ptr<RunTimeVal> evaluateIndexReInit(std::shared_ptr<IndexReInitStmt> stmt);
+	std::shared_ptr<RunTimeVal> evaluateStringBinaryExpr(std::shared_ptr<StringVal> left, 
+		std::shared_ptr<StringVal> right, std::string op);
 
 };
 
