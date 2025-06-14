@@ -117,7 +117,7 @@ public:
 
 	std::string doHttpRequest(std::string scheme, std::string host, std::string path, 
 		boost::beast::http::verb method, std::string body = "", std::string body_type = "",
-			bool is_file_download = false, std::string file_NAME = "");
+			bool is_file_download = false, std::string file_NAME = "", bool overwrite = false);
 	
 	RequestData parseUrl(std::string url);
 	

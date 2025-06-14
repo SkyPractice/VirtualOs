@@ -17,7 +17,7 @@ public:
         wxGraphicsContext* ctx = wxGraphicsContext::Create(dc);
 
         if(ctx){
-            wxGraphicsFont fnt = ctx->CreateFont(this->GetFont());
+            wxGraphicsFont fnt = ctx->CreateFont(this->GetFont(), this->GetForegroundColour());
             ctx->SetFont(fnt);
 
             ctx->DrawText(GetLabelText(), 0, 0);

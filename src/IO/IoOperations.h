@@ -56,7 +56,8 @@ public:
 class FileDownloadRequest : public HttpRequest {
 public:
     std::string file_name;
-    FileDownloadRequest(std::string addr, std::string file_Name): HttpRequest(addr, FileDownloadRequestType),
-        file_name(file_Name) {};
+    bool overwrite;
+    FileDownloadRequest(std::string addr, std::string file_Name, bool OverWrite): HttpRequest(addr, FileDownloadRequestType),
+        file_name(file_Name), overwrite(OverWrite) {};
 
 };

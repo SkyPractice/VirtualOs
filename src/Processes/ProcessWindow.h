@@ -39,6 +39,8 @@ public:
 	OutputLabel* output_label;
 	wxBitmap process_bmp;
 
+	wxColour bk_clr = wxColour(212, 208, 200);
+
 	ProcessWindow(wxWindow* parent, std::string app_name,
 		std::vector<Interrupt>* interrupts, std::mutex* kernel_mut, Process* proc,
 		wxBitmap img,

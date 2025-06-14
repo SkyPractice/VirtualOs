@@ -86,8 +86,9 @@ RequestData Process::parseUrl(std::string url){
 
 std::string Process::doHttpRequest(std::string scheme, std::string host, std::string path, 
 	boost::beast::http::verb method, std::string body, std::string body_type, bool is_file_download,
-		std::string file_NAME){
+		std::string file_NAME, bool overwrite){
 	boost::asio::ip::tcp::resolver resolver(BoostBundler::io_ctx);
+	if(fs::exists(file_NAME) && !overwrite) return "";
 	if (scheme == "https")
 	{
 
@@ -207,7 +208,7 @@ void Process::processFileDownloadRequest(std::shared_ptr<FileDownloadRequest> re
 	RequestData url_data = parseUrl(req->address);
 
 	doHttpRequest(url_data.scheme, 
-		url_data.host, url_data.path, boost::beast::http::verb::get, "", "", true, req->file_name);
+		url_data.host, url_data.path, boost::beast::http::verb::get, "", "", true, req->file_name, req->overwrite);
 };
 
 

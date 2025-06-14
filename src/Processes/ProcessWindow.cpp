@@ -63,7 +63,7 @@ void ProcessWindow::onPaint(wxPaintEvent& evt) {
 		if(type == ConsoleWindow){
 			ctx->SetBrush(*wxBLACK_BRUSH);
 		} else if (type == GUIWindow){
-			ctx->SetBrush(wxColour(212, 208, 200));
+			ctx->SetBrush(bk_clr);
 		}
 		ctx->DrawRectangle(0, 0, w, h);
 		ctx->SetBrush(*wxWHITE_BRUSH);
@@ -119,7 +119,6 @@ void ProcessWindow::onLeftButtonDown(wxMouseEvent& evt) {
 	else if (mouse_y < 40) {
 		getting_dragged = true;
 		starting_pos = wxPoint(mouse_x, mouse_y);
-		Refresh();
 		CaptureMouse();
 	}
 

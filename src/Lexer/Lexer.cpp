@@ -30,10 +30,10 @@ std::vector<Token> Lexer::tokenize(std::string source_path) {
 		while (skip_str.find(ch) != std::string::npos && ch != '\0')
 			advance();
 
-		if (isdigit(ch)) {
+		if (isdigit(ch) || (ch == '-' && isdigit(source_code[idx + 1]))) {
 			std::string num = "";
 
-			while (isdigit(ch)) {
+			while (isdigit(ch) || (ch == '-' && isdigit(source_code[idx + 1]))) {
 				num.push_back(ch);
 				advance();
 			}

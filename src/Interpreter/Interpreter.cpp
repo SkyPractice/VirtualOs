@@ -6,6 +6,10 @@
 #include "../CustomMsgs/ButtonCreationEvent.h"
 #include "../Processes/BkTransparentLabel.h"
 #include <wx/app.h>
+#include "../Processes/CustomPanel.h"
+#include "../Processes/CustomImage.h"
+#include <webp/decode.h>
+#include <fstream>
 
 std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector<shared_ptr<RunTimeVal>>, 
 	Process*)>> SystemCalls::sys_calls =
@@ -99,7 +103,9 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 	{ "download_file", [&](std::vector<shared_ptr<RunTimeVal>> args, Process* caller) -> shared_ptr<RunTimeVal> {
 		std::string ip_addr = std::dynamic_pointer_cast<StringVal>(args[0])->str;
 		std::string file_NAme = std::dynamic_pointer_cast<StringVal>(args[1])->str;
-		std::shared_ptr<FileDownloadRequest> req = std::make_shared<FileDownloadRequest>(ip_addr, file_NAme);
+		bool overwrite = std::dynamic_pointer_cast<BoolVal>(args[2])->val;
+		std::shared_ptr<FileDownloadRequest> req = std::make_shared<FileDownloadRequest>(ip_addr, file_NAme,
+			overwrite);
 		caller->io_operation = req;
 
 		caller->suspended = true;
@@ -353,20 +359,52 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 				std::shared_ptr<StringVal> img_path = std::dynamic_pointer_cast<StringVal	>(args[1]);
 				std::shared_ptr<NumVal> x = std::dynamic_pointer_cast<NumVal>(args[2]);
 				std::shared_ptr<NumVal> y = std::dynamic_pointer_cast<NumVal>(args[3]);
-				std::shared_ptr<NumVal> width = std::dynamic_pointer_cast<NumVal>(args[4]);
-				std::shared_ptr<NumVal> height = std::dynamic_pointer_cast<NumVal>(args[5]);
+				std::shared_ptr<NumVal> w = std::dynamic_pointer_cast<NumVal>(args[4]);
+				std::shared_ptr<NumVal> h = std::dynamic_pointer_cast<NumVal>(args[5]);
 
-				wxStaticBitmap* bmp = nullptr;
+				CustomImage* bmp = nullptr;
 
-				std::function<void()> fun = [&, window_handle, img_path, x, y, width, height](){
-					wxImage img(img_path->str);
-					bmp = new wxStaticBitmap(window_handle->window, wxID_ANY, 
-					wxBitmapBundle(wxBitmap(img.Scale(width->number, height->number, wxIMAGE_QUALITY_HIGH))), 
-						wxPoint(x->number, y->number), wxSize(width->number, height->number));
+				std::function<void()> fun = [&, window_handle, img_path, x, y, w, h](){
+					if(!img_path->str.ends_with("webp")){
+						wxImage img(img_path->str);
+						bmp = new CustomImage(window_handle->window, 
+						wxBitmap(img.Scale(w->number, h->number, wxIMAGE_QUALITY_HIGH)), 
+							wxPoint(x->number, y->number), wxSize(w->number, h->number));
+					}
+					else {
+						std::ifstream strea(img_path->str, std::ios::binary | std::ios::ate);
+						std::streampos s = strea.tellg();
+						strea.seekg(0, std::ios::beg);
+
+						std::vector<uint8_t> bytes(s);
+						strea.read(reinterpret_cast<char*>(bytes.data()), s);
+
+						int width, height;
+						WebPGetInfo(bytes.data(), s, &width, &height);
+
+						uint8_t* img_data = WebPDecodeRGBA(bytes.data(), s, &width, &height);
+
+						unsigned char* nonAlpha = new unsigned char[width * height * 3];
+						unsigned char* alphaData = new unsigned char[width * height];
+
+						for(size_t i = 0; i < width * height; i++){
+
+							nonAlpha[i * 3 + 0] = img_data[i * 4 + 0];
+							nonAlpha[i * 3 + 1] = img_data[i * 4 + 1];
+							nonAlpha[i * 3 + 2] = img_data[i * 4 + 2];
+							alphaData[i] = img_data[i * 4 + 3];
+						}
+						wxImage img(width, height, nonAlpha, alphaData);
+						bmp = new CustomImage(window_handle->window, 
+						wxBitmap(img.Scale(w->number, h->number, wxIMAGE_QUALITY_HIGH)), 
+							wxPoint(x->number, y->number), wxSize(w->number, h->number));
+						WebPFree(img_data);
+
+					}
 				};
 
 				
-					if(!wxThread::IsMain()){
+				if(!wxThread::IsMain()){
 					std::condition_variable v;
 					std::mutex mut;
 					std::unique_lock<std::mutex> lock(mut);
@@ -440,10 +478,10 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 				std::shared_ptr<NumVal> width = std::dynamic_pointer_cast<NumVal>(args[3]);
 				std::shared_ptr<NumVal> height = std::dynamic_pointer_cast<NumVal>(args[4]);
 
-				wxPanel* panel = nullptr;
+				CustomPanel* panel = nullptr;
 
 				std::function<void()> fun = [&, window_handle, x, y, width, height](){
-					panel = new wxPanel(window_handle->window, wxID_ANY,  
+					panel = new CustomPanel(window_handle->window,  
 						wxPoint(x->number, y->number), wxSize(width->number, height->number));
 				};
 
