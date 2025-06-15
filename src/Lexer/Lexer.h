@@ -13,7 +13,8 @@ enum TokenAst {
 	OpenBracket, CloseBracket, Equal, DoubleQuote, SingleQuote,
 	Variable, EndOfFile, Func, True, False, Call, Comma, If, ElseIf, Else,
 	While, For, Class, Try, Catch, Throw, ReInit, Return, Break, Continue,
-	String, Lambda, IndexReinit, IndexAccess, Struct
+	String, Lambda, IndexReinit, IndexAccess, Struct, NewTok, MemberAccess,
+	MemberAccessIndicator
 };
 
 struct Token {

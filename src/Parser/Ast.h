@@ -21,7 +21,9 @@ enum StatementType {
 	IndexAccessExpressionType,
 	LambdaExprType,
 	IndexReinitType,
-	StructDeclerationType
+	StructDeclerationType,
+	StructExprType,
+	MemberAccessExprType
 };
 
 enum ErrorType {
@@ -304,6 +306,17 @@ public:
 		index_path(index_arg), array_expr(array_expression) {};
 };
 
+class MemberAccessExpr : public ExpressionObj {
+public:
+	shared_ptr<ExpressionObj> stru_expr;
+	std::vector<std::string> mem_path;
+
+	MemberAccessExpr(std::vector<std::string> mem_arg, 
+		shared_ptr<ExpressionObj> stru_expression): ExpressionObj(MemberAccessExprType),
+		mem_path(mem_arg), stru_expr(stru_expression) {};
+};
+
+
 class LambdaExpression : public ExpressionObj {
 public:
 	std::vector<std::string> args;
@@ -334,4 +347,14 @@ public:
 	StructDecleration(std::string struc_name,
 		std::vector<std::string> struc_props_names): StatementObj(StructDeclerationType),
 		name(struc_name), props(struc_props_names) {};
+};
+
+class StructExpression : public ExpressionObj{
+public:
+	std::string struct_name;
+	std::vector<std::shared_ptr<ExpressionObj>> constructor_args;
+
+	StructExpression(std::string struct_name_arg,
+		std::vector<std::shared_ptr<ExpressionObj>> constructor_args_arg) : ExpressionObj(StructExprType),
+		struct_name(struct_name_arg), constructor_args(constructor_args_arg) {};
 };

@@ -24,7 +24,6 @@ public:
         else if(handle->control_type == FrameControlType){
             ProcessWindow* window = dynamic_cast<ProcessWindow*>(handle->window);
             window->bk_clr = wxColour(r->number, g->number, b->number, a->number);
-            window->Refresh();
         }
         return nullptr;
     }
@@ -37,7 +36,6 @@ public:
         shared_ptr<NumVal> a = std::dynamic_pointer_cast<NumVal>(args[4]);
 
         handle->window->SetForegroundColour(wxColour(r->number, g->number, b->number, a->number));
-        handle->window->Refresh();
         
         return nullptr;
     }
@@ -52,7 +50,6 @@ public:
         if(handle->control_type == PanelControlType){
             CustomPanel* panel = dynamic_cast<CustomPanel*>(handle->window);
             panel->border_clr = wxColour(r->number, g->number, b->number, a->number);
-            panel->Refresh();
         }
 
         return nullptr;
@@ -64,7 +61,6 @@ public:
         if(handle->control_type == PanelControlType){
             CustomPanel* panel = dynamic_cast<CustomPanel*>(handle->window);
             panel->border_weight = w->number;
-            panel->Refresh();
         }
 
         return nullptr;
@@ -76,12 +72,10 @@ public:
         if(handle->control_type == PanelControlType){
             CustomPanel* panel = dynamic_cast<CustomPanel*>(handle->window);
             panel->border_radius = w->number;
-            panel->Refresh();
         }
         else if(handle->control_type == ImageControlType){
             CustomImage* panel = dynamic_cast<CustomImage*>(handle->window);
             panel->border_rad = w->number;
-            panel->Refresh();
         }
         return nullptr;
     }
@@ -93,7 +87,6 @@ public:
         
         wxWindow* window = handle->window;
         window->SetPosition(wxPoint(x->number, y->number));
-        window->Refresh();
         
 
         return nullptr;
@@ -117,6 +110,7 @@ public:
         shared_ptr<NumVal> font_size = std::dynamic_pointer_cast<NumVal>(args[2]);
         shared_ptr<NumVal> font_weight = std::dynamic_pointer_cast<NumVal>(args[3]);
         wxFontInfo fnt_info(font_size->number);
+        fnt_info.Family(wxFONTFAMILY_SWISS);
         fnt_info.FaceName(font_family->str);
         fnt_info.Weight(font_weight->number);
         fnt_info.AntiAliased(true);
@@ -124,6 +118,18 @@ public:
             wxFont(fnt_info)
         );
 
+        return nullptr;
+    }
+    static FuncRet showWindow(FuncArgs args, Interpreter* interp){
+        shared_ptr<Handle> not_casted_handle = std::dynamic_pointer_cast<Handle>(args[0]);
+        shared_ptr<ControlHandle> handle = std::dynamic_pointer_cast<ControlHandle>(not_casted_handle);
+        handle->window->Show(true);
+        return nullptr;
+    }
+    static FuncRet hideWindow(FuncArgs args, Interpreter* interp){
+        shared_ptr<Handle> not_casted_handle = std::dynamic_pointer_cast<Handle>(args[0]);
+        shared_ptr<ControlHandle> handle = std::dynamic_pointer_cast<ControlHandle>(not_casted_handle);
+        handle->window->Hide();
         return nullptr;
     }
     StyleSheetInitializer(){
@@ -139,6 +145,8 @@ public:
         SystemCalls::native_functions.insert({"set_window_font", StyleSheetInitializer::setWindowFont});
         SystemCalls::native_functions.insert({"set_window_txt_color", StyleSheetInitializer::setWindowTxtColor});
         SystemCalls::native_functions.insert({"set_window_txt_colour", StyleSheetInitializer::setWindowTxtColor});
+        SystemCalls::native_functions.insert({"show_window", StyleSheetInitializer::showWindow});
+        SystemCalls::native_functions.insert({"hide_window", StyleSheetInitializer::hideWindow});
 
     }
 };

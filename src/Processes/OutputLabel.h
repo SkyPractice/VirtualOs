@@ -26,6 +26,14 @@ public:
         wxGraphicsContext* ctx = wxGraphicsContext::Create(dc);
 
         if (ctx) {
+             #ifdef __WXMSW__
+            wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDirect2DRenderer();
+        if (renderer)
+        {
+            delete ctx; // Delete the default context
+            ctx = renderer->CreateContext(dc);
+        }
+        #endif
             int w, h;
             GetClientSize(&w, &h);
 

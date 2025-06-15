@@ -19,7 +19,7 @@ public:
 	bool try_mode = false;
 	std::unordered_map<std::string, std::shared_ptr<StructDecleration>> struct_decls;
 
-	Interpreter(std::vector<shared_ptr<StatementObj>> statements) : stmts(statements),
+	Interpreter(std::vector<std::shared_ptr<StatementObj>> statements) : stmts(statements),
 		program_scope(std::make_shared<Scope>(nullptr)){
 	
 		current_scope = program_scope;
@@ -57,7 +57,8 @@ public:
 	std::shared_ptr<RunTimeVal> evaluateStringBinaryExpr(std::shared_ptr<StringVal> left, 
 		std::shared_ptr<StringVal> right, std::string op);
 	std::shared_ptr<RunTimeVal> evaluateStructDecleration(std::shared_ptr<StructDecleration> decl);
-
+	std::shared_ptr<RunTimeVal> evaluateStructExpr(std::shared_ptr<StructExpression> expr);
+	std::shared_ptr<RunTimeVal> evaluateMemberAccessExpr(std::shared_ptr<MemberAccessExpr> expr);
 };
 
 class SystemCalls {

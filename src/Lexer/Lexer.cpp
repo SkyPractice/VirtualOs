@@ -14,7 +14,7 @@ std::unordered_map<std::string, TokenAst> Lexer::known_tokens = {
 	{ "class", Class }, { ">", BinaryOperator }, { "<", BinaryOperator }, { "throw", Throw },
 	{ "catch", Catch }, { "try", Try }, { "reinit", ReInit }, { "return", Return }, { "break", Break },
 	{ "continue", Continue }, {"lambda", Lambda},{"idx", IndexAccess},  { "idx_reinit", IndexReinit },
-	{ "struct", Struct }
+	{ "struct", Struct }, { "new", NewTok }, { ".", MemberAccess }, { "member_access", MemberAccessIndicator }
 };
 
 std::vector<Token> Lexer::tokenize(std::string source_path) {
@@ -101,14 +101,14 @@ std::vector<Token> Lexer::tokenize(std::string source_path) {
 	tokens.push_back({ "\0", EndOfFile });
 
 	return tokens;
-}
+};
 void Lexer::advance() {
 
 	if (ch != '\0' && idx < source_code.size()) {
 		ch = source_code[++idx];
 	}
 	else ch = '\0';
-}
+};
 
 void Lexer::getSourceFromPath(std::string path) {
 
@@ -129,4 +129,4 @@ void Lexer::getSourceFromPath(std::string path) {
 
 	file_stream.close();
 
-}
+};

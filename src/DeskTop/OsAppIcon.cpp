@@ -38,7 +38,14 @@ void OsAppIcon::onDraw(wxPaintEvent& evt) {
 	wxGraphicsContext* ctx = wxGraphicsContext::Create(dc);
 	
 	if (ctx) {
-
+		 #ifdef __WXMSW__
+            wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDirect2DRenderer();
+        if (renderer)
+        {
+            delete ctx; // Delete the default context
+            ctx = renderer->CreateContext(dc);
+        }
+        #endif
 		int x, y, w, h;
 		this->GetPosition(&x, &y);
 		this->GetSize(&w, &h);

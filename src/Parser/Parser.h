@@ -16,6 +16,7 @@ public:
 	static shared_ptr<ExpressionObj> parseAdditiveExpression();
 	static shared_ptr<ExpressionObj> parseMultiplicativeExpression();
 	static shared_ptr<ExpressionObj> parseComparativeExpression();
+	static shared_ptr<ExpressionObj> parseMemberAccessExpression();
 
 	static shared_ptr<ExpressionObj> parseStringExpression();
 	static shared_ptr<ExpressionObj> parseFunctionCallExpression();
@@ -35,6 +36,7 @@ public:
 	static shared_ptr<ThrowStatement> parseThrowStatement();
 	static shared_ptr<IndexReInitStmt> parseIndexReinit();
 	static shared_ptr<StructDecleration> parseStructDecleration();
+	static shared_ptr<StructExpression> parseStructExpression();
 
 	static shared_ptr<ExpressionObj> parsePrimaryExpression();
 

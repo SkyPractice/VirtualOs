@@ -20,6 +20,14 @@ public:
         wxGraphicsContext* ctx = wxGraphicsContext::Create(dc);
 
         if(ctx){
+              #ifdef __WXMSW__
+            wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDirect2DRenderer();
+        if (renderer)
+        {
+            delete ctx; // Delete the default context
+            ctx = renderer->CreateContext(dc);
+        }
+        #endif
             int x, y, w, h;
             this->GetSize(&w, &h);
             this->GetSize(&x, &y);

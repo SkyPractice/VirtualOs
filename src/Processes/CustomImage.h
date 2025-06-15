@@ -15,8 +15,15 @@ public:
     void onPaint(wxPaintEvent& evt){
         wxPaintDC dc(this);
         wxGraphicsContext* ctx = wxGraphicsContext::Create(dc);
-
         if(ctx){
+             #ifdef __WXMSW__
+            wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDirect2DRenderer();
+        if (renderer)
+        {
+            delete ctx; // Delete the default context
+            ctx = renderer->CreateContext(dc);
+        }
+        #endif
             int w, h;
             this->GetSize(&w, &h);
             wxBitmap clipping_bmp(w, h, 32);
@@ -34,7 +41,7 @@ public:
             ctx->Clip(wxRegion(clipping_bmp, wxColour(0, 0, 0)));
             ctx->DrawBitmap(bmp, 0, 0, w, h);
             ctx->ResetClip();
-            delete ctx;
+            delete ctx;  
         }
     }
 };

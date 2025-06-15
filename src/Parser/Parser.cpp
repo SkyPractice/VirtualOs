@@ -117,7 +117,6 @@ shared_ptr<ExpressionObj> Parser::parseComparativeExpression() {
 	return left;
 }
 
-
 shared_ptr<ExpressionObj> Parser::parsePrimaryExpression() {
 
 	switch (token->type)
@@ -143,6 +142,10 @@ shared_ptr<ExpressionObj> Parser::parsePrimaryExpression() {
 		return make_shared<IdentifierExpr>(advance().symbol);
 	case Lambda:
 		return parseLambdaExpression();
+	case NewTok:
+		return parseStructExpression();
+	case MemberAccessIndicator:
+		return parseMemberAccessExpression();
 	default:
 		throw std::exception("Unexcepted Token");
 		break;
@@ -468,3 +471,40 @@ shared_ptr<StructDecleration> Parser::parseStructDecleration(){
 
 	return std::make_shared<StructDecleration>(struct_name.symbol, struct_props);
 };
+
+
+shared_ptr<StructExpression> Parser::parseStructExpression(){
+	const Token new_word = advance();
+	const Token stru_name = advance(); // struct name
+	const Token open_paren = advance();
+
+	std::vector<std::shared_ptr<ExpressionObj>> exprs;
+
+	
+	while(token->type != CloseParen){
+		exprs.push_back(parseExpression());
+		if(token->type == Comma)
+			advance();
+		else if(token->type == CloseParen)
+			break;
+	}
+
+	const Token close_paren = advance();
+
+	return make_shared<StructExpression>(stru_name.symbol, exprs);
+
+};
+
+shared_ptr<ExpressionObj> Parser::parseMemberAccessExpression(){
+	const Token mem_acc_ind = advance();
+	auto stru_expr = parseExpression();
+	std::vector<std::string> acc_p;
+
+	while(token->symbol == "."){
+		advance(); // advance through the dot
+		const Token member_name = advance(); // advance through the name of the member
+		acc_p.push_back(member_name.symbol);
+	}
+
+	return std::make_shared<MemberAccessExpr>(acc_p, stru_expr);
+}

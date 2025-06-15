@@ -174,6 +174,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 							wxPoint(button_x->number, button_y->number),
 							wxSize(button_width->number, button_height->number)
 						);
+						btn->Hide();
 						btn->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
 							wxFONTWEIGHT_NORMAL));
 					};
@@ -229,8 +230,9 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 							str->str,
 							font_size->number
 						);
-						label->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
-							wxFONTWEIGHT_NORMAL, false, "Geist"));
+						label->Hide();
+						label->SetFont(wxFontInfo(font_size->number).Family(wxFONTFAMILY_SWISS)
+							.FaceName("Geist").AntiAliased());
 						};
 
 					if(!wxThread::IsMain()){
@@ -284,6 +286,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 							wxPoint(x->number, y->number),
 							wxSize(width->number, height->number)
 						);
+						txt_input->Hide();
 						txt_input->SetFont(wxFont(font_size->number, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL,
 							wxFONTWEIGHT_NORMAL));
 					};
@@ -370,6 +373,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 						bmp = new CustomImage(window_handle->window, 
 						wxBitmap(img.Scale(w->number, h->number, wxIMAGE_QUALITY_HIGH)), 
 							wxPoint(x->number, y->number), wxSize(w->number, h->number));
+						bmp->Hide();
 					}
 					else {
 						std::ifstream strea(img_path->str, std::ios::binary | std::ios::ate);
@@ -483,6 +487,7 @@ std::unordered_map<std::string, std::function<shared_ptr<RunTimeVal>(std::vector
 				std::function<void()> fun = [&, window_handle, x, y, width, height](){
 					panel = new CustomPanel(window_handle->window,  
 						wxPoint(x->number, y->number), wxSize(width->number, height->number));
+					panel->Hide();
 				};
 
 				
@@ -647,6 +652,10 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluate(std::shared_ptr<StatementObj> 
 		return evaluateIndexReInit(std::dynamic_pointer_cast<IndexReInitStmt>(statement));
 	case StructDeclerationType:
 		return evaluateStructDecleration(std::dynamic_pointer_cast<StructDecleration>(statement));
+	case StructExprType:
+		return evaluateStructExpr(std::dynamic_pointer_cast<StructExpression>(statement));
+	case MemberAccessExprType:
+		return evaluateMemberAccessExpr(std::dynamic_pointer_cast<MemberAccessExpr>(statement));
 	default:
 		break;
 	}
@@ -1012,3 +1021,28 @@ std::shared_ptr<RunTimeVal> Interpreter::evaluateStructDecleration(std::shared_p
 	struct_decls[decl->name] = decl;
 	return nullptr;
 };
+
+std::shared_ptr<RunTimeVal> Interpreter::evaluateStructExpr(std::shared_ptr<StructExpression> expr){
+	if(struct_decls.find(expr->struct_name) != struct_decls.end()){
+		std::shared_ptr<StructDecleration> decl = struct_decls[expr->struct_name];
+		std::unordered_map<std::string, std::shared_ptr<RunTimeVal>> vec_val;
+		for(int i = 0; i < expr->constructor_args.size(); i++){
+			vec_val.insert({ decl->props[i], evaluate(expr->constructor_args[i]) });
+		}
+
+		return std::make_shared<StructVal>(vec_val);
+	}
+	throw std::exception("No Such Struct Found");
+	return nullptr;
+};
+
+std::shared_ptr<RunTimeVal> Interpreter::evaluateMemberAccessExpr(std::shared_ptr<MemberAccessExpr> expr){
+	std::shared_ptr<RunTimeVal> current_val = evaluate(expr->stru_expr);
+
+	for(auto& str : expr->mem_path){
+		current_val = std::dynamic_pointer_cast<StructVal>(current_val)->values[str];
+	}
+
+	return current_val;
+};
+

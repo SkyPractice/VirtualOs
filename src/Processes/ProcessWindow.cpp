@@ -52,6 +52,14 @@ void ProcessWindow::onPaint(wxPaintEvent& evt) {
 	wxGraphicsContext* ctx = wxGraphicsContext::Create(dc);
 
 	if (ctx) {
+		 #ifdef __WXMSW__
+            wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetDirect2DRenderer();
+        if (renderer)
+        {
+            delete ctx; // Delete the default context
+            ctx = renderer->CreateContext(dc);
+        }
+        #endif
 		wxFont title_font(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 		wxGraphicsFont g_font = ctx->CreateFont(title_font, wxColor(0, 0, 0));
 
